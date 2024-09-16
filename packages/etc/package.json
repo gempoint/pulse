@@ -1,0 +1,22 @@
+{
+  "name": "etc",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/imagemin": "^9.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@napi-rs/image": "^1.9.2",
+    "@tamagui/cli": "^1.110.3",
+    "imagemin": "^9.0.0",
+    "imagemin-pngquant": "^10.0.0"
+  },
+  "scripts": {
+    "generate-themes": "tamagui generate-themes ./src/theme-builder.ts ../app/theme.ts",
+    "generate-icons": "bun ./src/generateImages.ts"
+  }
+}
