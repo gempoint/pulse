@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1f1f1f"
     },
     "jsEngine": "hermes",
     "ios": {
@@ -21,7 +21,7 @@
       "package": "com.gempoint.pulse",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1f1f1f"
       }
     },
     "web": {
@@ -39,7 +39,8 @@
           "scheme": "com.gempoint.pulse",
           "host": "auth"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

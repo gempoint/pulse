@@ -119,9 +119,9 @@ android {
     
         manifestPlaceholders = [
           spotifyClientId: "f61910ffe6754c74825ec6dd21d7bcb0",
-          spotifyRedirectUri: "com.gempoint.pulse://://authenticate",
-          redirectSchemeName: "com.gempoint.pulse://",
-          redirectHostName: "authenticate"
+          spotifyRedirectUri: "com.gempoint.pulse://auth",
+          redirectSchemeName: "com.gempoint.pulse",
+          redirectHostName: "auth"
         ]
     }
     signingConfigs {

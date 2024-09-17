@@ -2,13 +2,19 @@
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { Stack } from 'expo-router'
-import { useColorScheme } from 'react-native'
+import { Linking, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 //import DiffMain from '.'
 import { tamaguiConfig } from '../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import * as WebBrowser from 'expo-web-browser';
+
+//Linking.addEventListener('url', (u) => {
+//  console.log(u)
+//  WebBrowser.dismissBrowser()
+//})
 
 
 export default function RootLayout() {
