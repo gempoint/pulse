@@ -1,7 +1,10 @@
 import * as SecureStore from 'expo-secure-store';
 
 export default () => {
-  if (SecureStore.getItem('TOKEN') !== null) {
+  console.log('token', SecureStore.getItem('TOKEN'))
+  if ((SecureStore.getItem('TOKEN') === null) || (SecureStore.getItem('TOKEN') === undefined)) {
+    return false
+  } else {
     return true
-  } else return false
+  }
 }

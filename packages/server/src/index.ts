@@ -7,7 +7,12 @@ import axios, { AxiosError } from 'axios';
 import qs from 'qs'
 import safeAwait from 'safe-await';
 import { sign, verify } from 'hono/jwt'
+import { createBunWebSocket } from 'hono/bun'
+import type { ServerWebSocket } from 'bun'
+import ws from './ws'
 
+const { upgradeWebSocket, websocket } =
+  createBunWebSocket<ServerWebSocket>()
 import prisma from './prisma';
 
 const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SECRET } = Bun.env
@@ -27,7 +32,7 @@ const a = axios.create({
     'User-Agent': 'Pulse-API (idk)'
   }
 })
-const redirect_uri = 'http://192.168.1.215:3000/callback';
+const redirect_uri = 'http://192.168.1.161:3000/callback';
 
 app.use(logger())
 
@@ -85,6 +90,7 @@ app.get('/callback', async (c) => {
 
 
   if (aErr as AxiosError) {
+    // @ts-ignore
     console.log(aErr?.response?.data)
     return ba(c, 'something with wrong communicating with spotify')
   }
@@ -137,5 +143,13 @@ app.get('/valid', async (c) => {
   }
 })
 
+app.get('/ws', upgradeWebSocket((c) => ws(c)))
 
-export default app
+
+Bun.serve({
+  fetch: app.fetch,
+  port: 3000,
+  websocket,
+})
+
+//export default app

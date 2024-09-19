@@ -3,11 +3,12 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Button, Text, useTheme, View } from "tamagui"
 import * as WebBrowser from 'expo-web-browser';
-//import { isAvailable, Authenticate } from "@wwdrew/expo-spotify-sdk";
-import { apiEndpoint, scopes } from '../constants/idk';
+import { apiEndpoint } from '../constants/idk';
 import * as Linking from 'expo-linking';
 import Icon from '../assets/images/icon.svg'
 import isAuthed from "@/hooks/isAuthed";
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 
 console.log(Linking.createURL('auth'))
 
@@ -15,9 +16,16 @@ export default () => {
   const theme = useTheme()
   const authed = isAuthed()
 
+  console.log('auth', authed)
+
   if (authed) {
     return (
-      <Text>hi</Text>
+      <SafeAreaView>
+        <View style={styles.container}>
+          <Text>hi</Text>
+          <Button alignSelf="center" backgroundColor={"#1DB954"} onTouchEnd={() => signOut()}>Sign Out</Button>
+        </View>
+      </SafeAreaView>
     )
   }
 
@@ -49,4 +57,11 @@ const auth = async () => {
   } catch (err) {
     console.error(err)
   }
+}
+
+const signOut = async () => {
+  console.log('token', await SecureStore.getItemAsync('TOKEN'))
+  await SecureStore.deleteItemAsync('TOKEN')
+  router.push('/')
+
 }

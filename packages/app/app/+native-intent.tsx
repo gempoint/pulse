@@ -14,9 +14,7 @@ export const redirectSystemPath = async ({ path, initial }) => {
         }
         let x = await verifyToken(searchParams.get('code') as unknown as string)
         console.log('verified: ', x)
-        SecureStore.setItemAsync('TOKEN', searchParams.get('code') as unknown as string, {
-          keychainService: 'p'
-        })
+        await SecureStore.setItemAsync('TOKEN', searchParams.get('code') as unknown as string)
         return '/'
 
     }
