@@ -3,22 +3,37 @@ import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
 import { logger } from 'hono/logger'
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import qs from 'qs'
 import safeAwait from 'safe-await';
-import { sign, verify } from 'hono/jwt'
+import { sign, verify, decode } from 'hono/jwt'
 import { createBunWebSocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
-import ws from './ws'
+import os from 'os';
+import { bearerAuth } from 'hono/bearer-auth'
 
 const { upgradeWebSocket, websocket } =
   createBunWebSocket<ServerWebSocket>()
 import prisma from './prisma';
+import redis from './redis';
+import ws from './ws'
+import { a, AUTH_HEADER, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from './utils'
+import { getTopTracks } from './spotify';
 
-const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SECRET } = Bun.env
-const SPOTIFY_ACCOUNTS_ENDPOINT = "https://accounts.spotify.com";
-const AUTH_SECRET = btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`);
-const AUTH_HEADER = `Basic ${AUTH_SECRET}`;
+
+
+
+const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (const interfaceName in interfaces) {
+    const addresses = interfaces[interfaceName];
+    for (const address of addresses!) {
+      if (address.family === 'IPv4' && !address.internal) {
+        return address.address;
+      }
+    }
+  }
+};
 
 const go = (x: Context, y: unknown) => x.json({ msg: y, ok: true });
 
@@ -27,12 +42,7 @@ const ba = (x: Context, y: unknown) => x.json({ msg: y, ok: false });
 
 const app = new Hono()
 
-const a = axios.create({
-  headers: {
-    'User-Agent': 'Pulse-API (idk)'
-  }
-})
-const redirect_uri = 'http://192.168.1.161:3000/callback';
+const redirect_uri = `http://${getLocalIP()}:3000/callback`;
 
 app.use(logger())
 
@@ -56,6 +66,7 @@ const scopes: string = [
   "user-follow-read", // get following
   "user-modify-playback-state" //add to queue
 ].join(" ");
+
 
 app.get('/login', (c) => {
   let code = crypto.randomUUID();
@@ -103,6 +114,15 @@ app.get('/callback', async (c) => {
       id: spotifyId,
     }
   })
+  await prisma.user.update({
+    where: {
+      id: pos?.id
+    },
+    data: {
+      access_token: res?.data.access_token as string,
+      refresh_token: res?.data.refresh_token as string,
+    }
+  })
 
 
   if (!pos) {
@@ -141,6 +161,46 @@ app.get('/valid', async (c) => {
   if (dat) {
     return go(c, '')
   }
+})
+
+const radarValid = z.object({
+  lat: z.number(),
+  long: z.number(),
+})
+
+app.post('/radar', zValidator('json', radarValid), async (c) => {
+  const v = c.req.valid('json')
+  let auth = c.req.header('Authorization')
+  console.log(auth)
+  if (!auth) {
+    return ba(c, 'no auth token')
+  }
+  auth = auth.replace('Bearer ', '')
+  console.log(auth)
+
+  const [err, dat] = await safeAwait(verify(auth, (SECRET as unknown as string)))
+  if (err) {
+    console.log(err)
+    return ba(c, 'bad token')
+  }
+  //const { payload } = decode(auth)
+  console.log('lat', v.lat)
+  console.log('long', v.long)
+  let x = await redis.geoAdd('user_loc', {
+    latitude: v.lat!,
+    longitude: v.long!,
+    member: dat.id!
+  })
+  console.log(x)
+
+  let nearby = await redis.geoRadius('user_loc', {
+    latitude: v.lat,
+    longitude: v.long,
+  }, 100, 'm')
+  console.log(nearby)
+  let tracks = await getTopTracks(nearby)
+  return go(c, tracks)
+
 })
 
 app.get('/ws', upgradeWebSocket((c) => ws(c)))

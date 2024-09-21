@@ -9,5 +9,15 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "trustedDependencies": [
+    "@prisma/client",
+    "@prisma/engines",
+    "@sentry/cli",
+    "@swc/core",
+    "esbuild",
+    "pngquant-bin",
+    "prisma",
+    "vue-demi"
+  ]
 }

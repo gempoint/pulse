@@ -1,6 +1,6 @@
 import { SpotifyScope } from "@wwdrew/expo-spotify-sdk/build/ExpoSpotifySDK.types";
 import Constants from 'expo-constants'
-
+const { packagerOpts } = Constants
 export const scopes: SpotifyScope[] = [
   "user-read-currently-playing", // get queue
   "user-top-read", // get top content
@@ -19,4 +19,5 @@ export const apiEndpoint = () => {
   } else {
     return `https://www.i0x0.wtf`
   }
-} 
+}
+export const isDev = packagerOpts && packagerOpts.dev

@@ -2,6 +2,9 @@
   "name": "server",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "start": "./src/index.ts"
+  },
   "devDependencies": {
     "@types/bluebird": "^3.5.42",
     "@types/bun": "latest",
@@ -14,6 +17,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.2.2",
+    "@keyv/redis": "^3.0.1",
     "@prisma/client": "^5.19.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "axios": "^1.7.7",
@@ -23,6 +27,7 @@
     "keyv": "^5.0.1",
     "ky": "^1.7.2",
     "qs": "^6.13.0",
+    "redis": "^4.7.0",
     "safe-await": "^2.0.0",
     "zod": "^3.23.8"
   }

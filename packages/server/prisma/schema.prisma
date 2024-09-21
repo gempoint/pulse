@@ -8,10 +8,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator drizzle {
-  provider = "drizzle-prisma-generator"
-  output   = "./drizzle" // Where to put generated Drizle tables
-}
+//generator drizzle {
+//  provider = "drizzle-prisma-generator"
+//  output   = "./drizzle" // Where to put generated Drizle tables
+//}
 
 datasource db {
   provider = "postgresql"
@@ -19,10 +19,13 @@ datasource db {
 }
 
 model User {
-  id            String  @id
-  following     User[]  @relation(name: "UserToUser")
-  followers     User[]  @relation(name: "UserToUser")
-  verified      Boolean
+  id            String   @id
+  following     User[]   @relation(name: "UserToUser")
+  followers     User[]   @relation(name: "UserToUser")
+  verified      Boolean  @default(false)
+  staff         Boolean  @default(false)
+  artist        Boolean  @default(false)
+  flags         String[]
   access_token  String
   refresh_token String
   token         String

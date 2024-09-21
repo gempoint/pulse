@@ -1,3 +1,7 @@
-import KeyvRedis from '@keyv/redis';
+import { createClient } from 'redis';
 
-const keyv = new Keyv(new KeyvRedis('redis://user:pass@localhost:6379'));
+export default await createClient({
+  url: Bun.env.REDIS_URL
+})
+  .on('error', err => console.log('Redis Client Error', err))
+  .connect();

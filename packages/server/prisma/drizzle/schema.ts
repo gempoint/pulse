@@ -4,6 +4,9 @@ import { boolean, foreignKey, pgTable, text } from 'drizzle-orm/pg-core'
 export const User = pgTable('User', {
 	id: text('id').notNull().primaryKey(),
 	verified: boolean('verified').notNull(),
+	staff: boolean('staff').notNull(),
+	artist: boolean('artist').notNull(),
+	flags: text('flags').array().notNull(),
 	access_token: text('access_token').notNull(),
 	refresh_token: text('refresh_token').notNull(),
 	token: text('token').notNull()

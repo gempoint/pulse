@@ -12,6 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#1f1f1f"
     },
+    "extra": {
+      "DSN": "https://04ce65a60dd9b50514b823edaa61c830@o4504234803068928.ingest.us.sentry.io/4507992564498432"
+    },
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
@@ -40,7 +43,24 @@
           "host": "auth"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "gempoint",
+          "project": "pulse",
+          // If you are using a self-hosted instance, update the value of the url property
+          // to point towards your self-hosted instance. For example, https://self-hosted.example.com/.
+          "url": "https://sentry.io/"
+        }
+      ]
+
     ],
     "experiments": {
       "typedRoutes": true
