@@ -2,8 +2,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Button } from 'tamagui';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { Restart } from 'fiction-expo-restart';
+import { useSession } from '../../components/ctx';
+//import { Restart } from 'fiction-expo-restart';
 export default function Tab() {
+  const { signOut } = useSession();
   return (
     <View style={styles.container}>
       <Text>Tab [Home|Settings]</Text>
@@ -20,9 +22,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const signOut = async () => {
+const signOut_ = async () => {
   console.log('token', await SecureStore.getItemAsync('TOKEN'))
   await SecureStore.deleteItemAsync('TOKEN')
   //router.push('/')
-  Restart()
+  //Restart()
 }

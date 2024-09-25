@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import axios from "axios";
 import { useEffect } from "react";
 import * as Location from 'expo-location';
-import SignIn from './SignIn'
+import SignIn from './login'
 //console.log(Linking.createURL('auth'))
 
 export default () => {

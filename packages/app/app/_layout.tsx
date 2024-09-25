@@ -1,7 +1,7 @@
 //import '../tamagui-web.css'
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Stack, useNavigationContainerRef } from 'expo-router'
+import { Slot, Stack, useNavigationContainerRef } from 'expo-router'
 import { Linking, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 import { tamaguiConfig } from '../tamagui.config'
@@ -13,6 +13,7 @@ import { isRunningInExpoGo } from 'expo';
 import Constants from 'expo-constants';
 import { isDev } from '@/constants/idk'
 import isAuthed from '@/hooks/isAuthed'
+import { SessionProvider } from '@/components/ctx'
 //Linking.addEventListener('url', (u) => {
 //  console.log(u)
 //  WebBrowser.dismissBrowser()
@@ -49,9 +50,9 @@ function RootLayout() {
     if (loaded) {
       // can hide splash screen here
     }
-    if (ref) {
-      routingInstrumentation.registerNavigationContainer(ref);
-    }
+    //if (ref) {
+    //  routingInstrumentation.registerNavigationContainer(ref);
+    //}
 
   }, [loaded, ref])
 
@@ -64,9 +65,9 @@ function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme!}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
-          <Stack>
-            {authed ? <Stack.Screen name="(tabs)" options={{ headerShown: false, }} /> : <Stack.Screen name="index" options={{ headerShown: false }} />}
-          </Stack>
+          <SessionProvider>
+            <Slot />
+          </SessionProvider>
         </SafeAreaProvider>
       </ThemeProvider>
     </TamaguiProvider>
