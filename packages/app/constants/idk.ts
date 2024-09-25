@@ -20,4 +20,5 @@ export const apiEndpoint = () => {
     return `https://www.i0x0.wtf`
   }
 }
-export const isDev = packagerOpts && packagerOpts.dev
+//export const isDev = packagerOpts && packagerOpts.dev -- idk wtf this is
+export const isDev = __DEV__

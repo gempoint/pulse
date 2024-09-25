@@ -1,29 +1,32 @@
 //import '../tamagui-web.css'
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Stack, useNavigationContainerRef } from 'expo-router'
+import { Slot, Stack, useNavigationContainerRef } from 'expo-router'
 import { Linking, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 import { tamaguiConfig } from '../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Sentry from '@sentry/react-native';
+import { ToastProvider, ToastViewport } from '@tamagui/toast'
 import { isRunningInExpoGo } from 'expo';
 import Constants from 'expo-constants';
 import { isDev } from '@/constants/idk'
 import isAuthed from '@/hooks/isAuthed'
+import CurrentToast from '@/components/CurrentToast'
+
 //Linking.addEventListener('url', (u) => {
 //  console.log(u)
 //  WebBrowser.dismissBrowser()
 //})
 
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
-
+console.log('devMode:', __DEV__)
 Sentry.init({
   dsn: Constants.expoConfig?.extra!.DSN,
   debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-  enabled: isDev,
+  //enabled: isDev,
   integrations: [
     new Sentry.ReactNativeTracing({
       // Pass instrumentation to be used as `routingInstrumentation`
@@ -43,7 +46,7 @@ function RootLayout() {
     InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
   })
   const ref = useNavigationContainerRef();
-
+  const { left, top, right } = useSafeAreaInsets()
 
   useEffect(() => {
     if (loaded) {
@@ -64,9 +67,14 @@ function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme!}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
-          <Stack>
-            {authed ? <Stack.Screen name="(tabs)" options={{ headerShown: false, }} /> : <Stack.Screen name="index" options={{ headerShown: false }} />}
-          </Stack>
+          <ToastProvider>
+            <CurrentToast />
+            <ToastViewport flexDirection="column-reverse" top={top} left={left} right={right} />
+            {/*<Stack>
+              {authed ? <Stack.Screen name="(tabs)" options={{ headerShown: false, }} /> : <Stack.Screen name="(tabs)" options={{ headerShown: false }} />}
+            </Stack>*/}
+            <Slot />
+          </ToastProvider>
         </SafeAreaProvider>
       </ThemeProvider>
     </TamaguiProvider>

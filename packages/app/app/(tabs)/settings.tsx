@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Button } from 'tamagui';
+import { View, StyleSheet } from 'react-native';
+import { Button, Text } from 'tamagui';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { Restart } from 'fiction-expo-restart';
+import * as Application from 'expo-application';
+
 export default function Tab() {
   return (
     <View style={styles.container}>
-      <Text>Tab [Home|Settings]</Text>
+      <Text color="$white05" paddingBottom="$3">¯\_(ツ)_/¯</Text>
+      <Text color="$white05" paddingBottom="$3">Build {Application.nativeApplicationVersion}</Text>
       <Button alignSelf="center" backgroundColor={"#1DB954"} onTouchEnd={() => signOut()}>Sign Out</Button>
     </View>
   );
@@ -21,8 +23,7 @@ const styles = StyleSheet.create({
 });
 
 const signOut = async () => {
-  console.log('token', await SecureStore.getItemAsync('TOKEN'))
+  //console.log('token', await SecureStore.getItemAsync('TOKEN')) --- oops security
   await SecureStore.deleteItemAsync('TOKEN')
-  //router.push('/')
-  Restart()
+  router.push('/')
 }

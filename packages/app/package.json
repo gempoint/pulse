@@ -8,7 +8,8 @@
     "ios": "EXPO_USE_METRO_WORKSPACE_ROOT=1 expo run:ios",
     "web": "EXPO_USE_METRO_WORKSPACE_ROOT=1 expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "upgrade:tamagui": "bun update 'tamagui'@latest '@tamagui/*'@latest"
   },
   "jest": {
     "preset": "jest-expo"
@@ -21,14 +22,19 @@
     "@tamagui/config": "^1.111.1",
     "@tamagui/lucide-icons": "^1.111.1",
     "@tamagui/stacks": "^1.111.1",
+    "@tamagui/text": "^1.111.1",
+    "@tamagui/toast": "^1.111.1",
     "@wwdrew/expo-spotify-sdk": "^0.4.2",
     "axios": "^1.7.7",
+    "burnt": "^0.12.2",
     "expo": "^51.0.0",
+    "expo-application": "~5.9.1",
     "expo-constants": "~16.0.2",
     "expo-dev-client": "~4.0.26",
     "expo-device": "~6.0.2",
     "expo-font": "~12.0.10",
     "expo-image": "~1.12.15",
+    "expo-jwt": "^1.8.0",
     "expo-linking": "~6.3.1",
     "expo-location": "~17.0.1",
     "expo-router": "~3.5.23",

@@ -1,30 +1,65 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-import { useTheme } from 'tamagui';
+import isAuthed from '@/hooks/isAuthed';
+import { Redirect, Tabs, useNavigationContainerRef } from 'expo-router';
+import { Text, useTheme } from 'tamagui';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
+
+const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+
 
 export default function TabLayout() {
+  const authed = isAuthed()
   const theme = useTheme()
+  console.log('auth', authed)
+  const ref = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (ref) {
+      routingInstrumentation.registerNavigationContainer(ref);
+    }
+
+  }, [ref])
+
+  if (!authed) {
+    return <Redirect href="/auth" />
+  }
+  //console.log(theme.background)
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: theme.accentColor as unknown as string }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: theme.background.val,
+          borderTopWidth: 0,
+          elevation: 0,
+          height: 60,
+          paddingTop: 15,
+          //marginBottom: 10
+        },
+        tabBarActiveTintColor: theme.accentColor.val
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <AntDesign name="home" size={24} color={color} />
         }}
       />
       <Tabs.Screen
         name="feedback"
         options={{
-          title: 'Feedback',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="question" color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <Ionicons name="chatbox-outline" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: '',
+          tabBarIcon: ({ color }) => <AntDesign name="setting" size={24} color={color} />,
         }}
       />
     </Tabs>

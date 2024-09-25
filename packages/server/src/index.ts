@@ -199,7 +199,10 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
   }, 100, 'm')
   console.log(nearby)
   let tracks = await getTopTracks(nearby)
-  return go(c, tracks)
+  return go(c, {
+    nearby: nearby.length,
+    tracks: tracks.length
+  })
 
 })
 

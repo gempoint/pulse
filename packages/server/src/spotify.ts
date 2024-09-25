@@ -4,14 +4,18 @@ import { a, AUTH_HEADER, shuffle, SPOTIFY_CLIENT_ID } from "./utils";
 import safeAwait from "safe-await";
 import { SpotifyApi, type AccessToken, type Track } from "@spotify/web-api-ts-sdk";
 
+const SONG_LIST_LIMIT = 10
+
 export const getTopTracks = async (ids: string[]): Promise<Track[]> => {
+  // TODO: this code is very stupdi based on the fact that we are assuming that when we do redis request for location that we are the first one on the list but if we arent then ¯\_(ツ)_/¯
+  let mainUser: SpotifyApi
   let tracks: Track[] = []
   //ids.forEach(async (id) => {
 
   //})
   //console.log('tracks', tracks)
   //return tracks
-
+  let i = 0
   for (const id of ids) {
     let user = await prisma.user.findUnique({
       where: { id }
@@ -40,15 +44,35 @@ export const getTopTracks = async (ids: string[]): Promise<Track[]> => {
       refresh_token: user?.refresh_token!,
       token_type: "Bearer"
     })
-    let tracks_ = await sdk.currentUser.topItems('tracks', 'short_term', 25)
+    if (i === 0) {
+      mainUser = sdk
+    }
+    let tracks_ = await sdk.currentUser.topItems('tracks', 'short_term', 12)
     //console.log(tracks_)
-    let x = tracks.push(...tracks_.items)
-    console.log(x)
+
     //console.log(tracks)
-    tracks = shuffle(tracks)
     //tracks = tracks.concat(tracks_)
     //console.log((await sdk.currentUser.profile()).display_name)
-
+    // TODO: uncomment follow lines when we arent the only person using this
+    //if (i === 0) {
+    //  return;
+    //} else {
+    //  tracks.push(...tracks_.items)
+    //}
+    // TODO: comment follow line when we arent the only person using this
+    tracks.push(...tracks_.items)
+    tracks = shuffle(tracks)
+    //i === 0 ? null : tracks.concat(tracks_)
+    i++
   }
+  tracks.splice(SONG_LIST_LIMIT)
+  tracks.forEach(async (x) => {
+    try {
+      await mainUser.player.addItemToPlaybackQueue(x.uri)
+    } catch (e) {
+      console.log(e)
+    }
+  })
+
   return tracks
 }

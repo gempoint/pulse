@@ -22,3 +22,12 @@ export const verifyToken = async (x: string) => {
     return true
   } else return false
 }
+
+export const ping = async () => {
+  try {
+    let x = await a.get('/')
+    return true
+  } catch (err) {
+    return false
+  }
+}

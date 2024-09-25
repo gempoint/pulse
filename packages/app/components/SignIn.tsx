@@ -5,6 +5,8 @@ import Icon from '../assets/images/icon.svg'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as WebBrowser from 'expo-web-browser';
 import { apiEndpoint } from '../constants/idk';
+import { useToastController } from '@tamagui/toast';
+import { ping } from '@/constants/api';
 
 
 
@@ -30,10 +32,35 @@ const SubText = styled(Text, {
 
 
 export default function SpotifyLoginScreen() {
+  const toastController = useToastController()
   const handleSpotifyLogin = () => {
     // Implement Spotify OAuth login logic here
     console.log('Initiating Spotify login...')
     auth()
+  }
+
+  const auth = async () => {
+    try {
+      //console.log(await ping())
+      let available = await ping()
+      if (!available) {
+        toastController.show("server aint up i think", {
+          customData: {
+            error: true
+          }
+        })
+      } else {
+        let result = await WebBrowser.openAuthSessionAsync(`${apiEndpoint()}/login`, 'auth');
+        //console.log(result)
+        if (result.type === 'success') {
+          console.log("hm")
+        }
+      }
+      //console.log(apiEndpoint())
+
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -62,17 +89,4 @@ export default function SpotifyLoginScreen() {
       </Button>
     </YStack>
   )
-}
-const auth = async () => {
-  try {
-    //console.log(apiEndpoint())
-    let result = await WebBrowser.openAuthSessionAsync(`${apiEndpoint()}/login`, 'auth');
-    //console.log(result)
-    if (result.type === 'success') {
-      console.log("hm")
-    }
-
-  } catch (err) {
-    console.error(err)
-  }
 }

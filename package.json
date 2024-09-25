@@ -10,6 +10,9 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
+  "scripts": {
+    "reinstall": "rimraf node_modules && bun install"
+  },
   "trustedDependencies": [
     "@prisma/client",
     "@prisma/engines",
