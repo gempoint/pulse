@@ -5,13 +5,17 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "quick-lint-js": "^3.2.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "reinstall": "rimraf node_modules && bun install"
+    "reinstall": "rimraf node_modules && bun install",
+    "docker": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "lint": "node_modules/.bin/quick-lint-js packages/app/app/*/* && node_modules/.bin/quick-lint-js packages/server/src/**"
   },
   "trustedDependencies": [
     "@prisma/client",
@@ -21,6 +25,7 @@
     "esbuild",
     "pngquant-bin",
     "prisma",
+    "quick-lint-js",
     "vue-demi"
   ]
 }

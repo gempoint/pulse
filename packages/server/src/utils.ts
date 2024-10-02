@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Context } from 'hono';
 export const a = axios.create({
   headers: {
     'User-Agent': 'Pulse-API (idk)'
@@ -27,3 +28,15 @@ export function shuffle<T>(array: T[]): T[] {
 
   return array;
 };
+
+
+
+export const go = (x: Context, y: unknown) => x.json({ msg: y, ok: true });
+
+export const ba = (x: Context, y: unknown) => x.json({ msg: y, ok: false });
+
+export const REDIS_GEO_KEY = 'user_loc'
+
+export const REDIS_EXPIRE_KEY = 'geo_expire'
+
+export const expirationTime = 3600;  // Expire in 1 hour (3600 seconds)

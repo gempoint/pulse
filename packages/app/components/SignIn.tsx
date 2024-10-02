@@ -1,14 +1,11 @@
 import React from 'react'
 import { Button, Text, YStack, styled } from 'tamagui'
-import { Music } from '@tamagui/lucide-icons'
 import Icon from '../assets/images/icon.svg'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as WebBrowser from 'expo-web-browser';
 import { apiEndpoint } from '../constants/idk';
 import { useToastController } from '@tamagui/toast';
 import { ping } from '@/constants/api';
-
-
 
 const LogoContainer = styled(YStack, {
   alignItems: 'center',
@@ -30,6 +27,15 @@ const SubText = styled(Text, {
   marginTop: '$1',
 })
 
+
+import { useColorScheme } from 'react-native';
+
+const getThemeColor = () => {
+  const colorScheme = useColorScheme();
+  console.log('colorScheme', colorScheme)
+
+  return colorScheme === 'dark' ? '#FFFFFF' : '#000000';
+};
 
 export default function SpotifyLoginScreen() {
   const toastController = useToastController()
@@ -81,7 +87,7 @@ export default function SpotifyLoginScreen() {
       <Button
         size="$6"
         //theme="green"
-        icon={<FontAwesome5 name="spotify" size={24} color="white" />}
+        icon={<FontAwesome5 name="spotify" size={24} color={'white'} />}
         backgroundColor={"#1DB954"}
         onPress={handleSpotifyLogin}
       >

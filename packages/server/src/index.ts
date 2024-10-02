@@ -11,17 +11,18 @@ import { createBunWebSocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import os from 'os';
 import { bearerAuth } from 'hono/bearer-auth'
+import { sentry } from '@hono/sentry'
 
 const { upgradeWebSocket, websocket } =
   createBunWebSocket<ServerWebSocket>()
 import prisma from './prisma';
-import redis from './redis';
 import ws from './ws'
-import { a, AUTH_HEADER, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from './utils'
-import { getTopTracks } from './spotify';
+import { a, AUTH_HEADER, ba, go, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from './utils'
+//import { getTopTracks } from './spotify';
+import radar from './radar';
 
 
-
+//console.log()
 
 const getLocalIP = () => {
   const interfaces = os.networkInterfaces();
@@ -35,19 +36,22 @@ const getLocalIP = () => {
   }
 };
 
-const go = (x: Context, y: unknown) => x.json({ msg: y, ok: true });
-
-const ba = (x: Context, y: unknown) => x.json({ msg: y, ok: false });
-
-
 const app = new Hono()
 
 const redirect_uri = `http://${getLocalIP()}:3000/callback`;
 
 app.use(logger())
+app.use('*', sentry())
 
 app.onError((err, c) => {
   console.error(err)
+  //console.log(err.stack);
+  //console.log("");
+  //console.log("-- captureStackTrace --");
+  //console.log("");
+  //Error.captureStackTrace(err);
+  //console.log(err.stack);
+  //console.log(Bun.inspect(err, { colors: true }))
   return c.json({
     msg: err.message,
     ok: false
@@ -64,7 +68,8 @@ const scopes: string = [
   "user-read-email", // get email
   "user-read-private", //get subscription
   "user-follow-read", // get following
-  "user-modify-playback-state" //add to queue
+  "user-modify-playback-state", //add to queue,
+  "user-read-playback-state" //read state
 ].join(" ");
 
 
@@ -114,15 +119,7 @@ app.get('/callback', async (c) => {
       id: spotifyId,
     }
   })
-  await prisma.user.update({
-    where: {
-      id: pos?.id
-    },
-    data: {
-      access_token: res?.data.access_token as string,
-      refresh_token: res?.data.refresh_token as string,
-    }
-  })
+
 
 
   if (!pos) {
@@ -133,6 +130,16 @@ app.get('/callback', async (c) => {
         refresh_token: res?.data.refresh_token as string,
         token: "",
         verified: false,
+      }
+    })
+  } else {
+    await prisma.user.update({
+      where: {
+        id: pos?.id
+      },
+      data: {
+        access_token: res?.data.access_token as string,
+        refresh_token: res?.data.refresh_token as string,
       }
     })
   }
@@ -168,43 +175,7 @@ const radarValid = z.object({
   long: z.number(),
 })
 
-app.post('/radar', zValidator('json', radarValid), async (c) => {
-  const v = c.req.valid('json')
-  let auth = c.req.header('Authorization')
-  console.log(auth)
-  if (!auth) {
-    return ba(c, 'no auth token')
-  }
-  auth = auth.replace('Bearer ', '')
-  console.log(auth)
-
-  const [err, dat] = await safeAwait(verify(auth, (SECRET as unknown as string)))
-  if (err) {
-    console.log(err)
-    return ba(c, 'bad token')
-  }
-  //const { payload } = decode(auth)
-  console.log('lat', v.lat)
-  console.log('long', v.long)
-  let x = await redis.geoAdd('user_loc', {
-    latitude: v.lat!,
-    longitude: v.long!,
-    member: dat.id!
-  })
-  console.log(x)
-
-  let nearby = await redis.geoRadius('user_loc', {
-    latitude: v.lat,
-    longitude: v.long,
-  }, 100, 'm')
-  console.log(nearby)
-  let tracks = await getTopTracks(nearby)
-  return go(c, {
-    nearby: nearby.length,
-    tracks: tracks.length
-  })
-
-})
+app.post('/radar', zValidator('json', radarValid), radar)
 
 app.get('/ws', upgradeWebSocket((c) => ws(c)))
 
@@ -212,7 +183,23 @@ app.get('/ws', upgradeWebSocket((c) => ws(c)))
 Bun.serve({
   fetch: app.fetch,
   port: 3000,
-  websocket,
+  //websocket,
 })
+
+//const worker = new Worker("./worker.ts");
+const worker = new Worker(new URL("worker.ts", import.meta.url).href, {
+  // @ts-expect-error
+  smol: true
+});
+
+worker.addEventListener("open", event => {
+  console.log("worker is being open");
+});
+
+
+worker.addEventListener("close", event => {
+  console.log("worker is being closed");
+});
+
 
 //export default app

@@ -38,7 +38,8 @@ export default function TabLayout() {
           paddingTop: 15,
           //marginBottom: 10
         },
-        tabBarActiveTintColor: theme.accentColor.val
+        tabBarActiveTintColor: theme.accentColor.val,
+
       }}
     >
       <Tabs.Screen

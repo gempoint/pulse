@@ -16,9 +16,11 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@hono/sentry": "^1.2.0",
     "@hono/zod-validator": "^0.2.2",
     "@keyv/redis": "^3.0.1",
     "@prisma/client": "^5.19.1",
+    "@sentry/bun": "^8.32.0",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "axios": "^1.7.7",
     "bluebird": "^3.7.2",

@@ -26,7 +26,7 @@ console.log('devMode:', __DEV__)
 Sentry.init({
   dsn: Constants.expoConfig?.extra!.DSN,
   debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-  //enabled: isDev,
+  enabled: !isDev,
   integrations: [
     new Sentry.ReactNativeTracing({
       // Pass instrumentation to be used as `routingInstrumentation`
@@ -65,7 +65,8 @@ function RootLayout() {
   return (
     // add this
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme!}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={DarkTheme}>
+        {/*<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>*/}
         <SafeAreaProvider>
           <ToastProvider>
             <CurrentToast />
