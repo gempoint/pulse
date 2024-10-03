@@ -71,9 +71,6 @@ function RootLayout() {
           <ToastProvider>
             <CurrentToast />
             <ToastViewport flexDirection="column-reverse" top={top} left={left} right={right} />
-            {/*<Stack>
-              {authed ? <Stack.Screen name="(tabs)" options={{ headerShown: false, }} /> : <Stack.Screen name="(tabs)" options={{ headerShown: false }} />}
-            </Stack>*/}
             <Slot />
           </ToastProvider>
         </SafeAreaProvider>

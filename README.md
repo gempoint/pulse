@@ -11,7 +11,7 @@
 
 ## Docs/random bits of info
 
-* spotify api is very strict so it might say `INVALID_REDIRECT_URI` when doing some stuff ![show and tell](/docs/image.png)
+* spotify api is very strict so it might say `INVALID_REDIRECT_URI` when doing some stuff ![show and tell](/docs/diagram_1.png)
 * technically this could be ported to web but bffr whos gonna access this as a website
 * we need better ui for the app goddamn
 * there might be some bugs/security issues with auth (oops)
@@ -20,6 +20,9 @@
 * realistically there prob isnt a need for a realtime api if we want to build a "radar" like app
   * aka user polls for data when they want to and we could keep a autodeleting (prob 1 hr leeway) key-value db for keeping track of loc and corresponding user dat for realistic radar feel
   * randomly thought of at 12:18am 
+* why move to dragonflydb ![another show and tell](/docs/diagram_2.png)
+* should prob add more error checking in api but ¯\_(ツ)_/¯
+* might switch to rust for api (last resort for better performance)
 
 To install dependencies:
 

@@ -115,11 +115,14 @@ export default async (c: Context<{}, "/radar", {
     }
   }))
   if (e_) {
-    if (e_.response) {
-      console.log('get token errored out2')
-      console.error(e_.response.data);
+    const errors = e_ as Error | AxiosError;
+    if (axios.isAxiosError(errors)) {
+      if (errors.response) {
+        console.log('get token errored out')
+        console.error(errors.response.data);
+      }
     }
-    return ba(c, 'wtf')
+
   }
 
   let { data } = keys!

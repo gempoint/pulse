@@ -23,7 +23,7 @@ export default function TabLayout() {
   }, [ref])
 
   if (!authed) {
-    return <Redirect href="/auth" />
+    return <Redirect href={"/auth"} />
   }
   //console.log(theme.background)
   return (
@@ -39,7 +39,6 @@ export default function TabLayout() {
           //marginBottom: 10
         },
         tabBarActiveTintColor: theme.accentColor.val,
-
       }}
     >
       <Tabs.Screen
@@ -61,6 +60,12 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ color }) => <AntDesign name="setting" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="model"
+        options={{
+          href: null
         }}
       />
     </Tabs>
