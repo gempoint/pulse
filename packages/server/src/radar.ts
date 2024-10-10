@@ -1,4 +1,3 @@
-import type { Context } from "hono";
 import { a, AUTH_HEADER, ba, expirationTime, go, REDIS_EXPIRE_KEY, REDIS_GEO_KEY, SECRET, shuffle, SPOTIFY_CLIENT_ID } from "./utils";
 import { verify } from "hono/jwt";
 import safeAwait from "safe-await";
@@ -7,6 +6,11 @@ import { SpotifyApi, type AccessToken, type Page, type Track } from "@spotify/we
 import prisma from "./prisma";
 import type { AxiosError } from "axios";
 import axios from "axios";
+import { Hono } from 'hono'
+import { zValidator } from "@hono/zod-validator";
+import { z } from 'zod'
+
+const app = new Hono()
 
 const SONG_LIST_LIMIT = 10
 
@@ -30,20 +34,15 @@ class MyDeserializer {
   }
 }
 
-export default async (c: Context<{}, "/radar", {
-  in: {
-    json: {
-      lat: number;
-      long: number;
-    };
-  };
-  out: {
-    json: {
-      lat: number;
-      long: number;
-    };
-  };
-}>) => {
+
+const radarValid = z.object({
+  lat: z.number(),
+  long: z.number(),
+})
+
+
+
+app.post('/radar', zValidator('json', radarValid), async (c) => {
   const v = c.req.valid('json')
   let auth = c.req.header('Authorization')
   console.log(auth)
@@ -75,11 +74,6 @@ export default async (c: Context<{}, "/radar", {
     score: expirationTimestamp,
     value: dat.id! as string
   })
-
-  //let nearby = await redis.geoRadius(REDIS_GEO_KEY, {
-  //  latitude: v.lat,
-  //  longitude: v.long,
-  //}, 100, 'm')
 
   // had to change bc of change from redis -> dragonfly for better performance
   let nearby = await redis.geoSearch(REDIS_GEO_KEY, {
@@ -188,7 +182,7 @@ export default async (c: Context<{}, "/radar", {
     //console.log(tracks_.items)
 
     if (tracks_.items.length === 0) {
-      console.log(`no `)
+      console.log(`no tracks from a user?`)
     }
 
     //console.log(tracks)
@@ -200,7 +194,12 @@ export default async (c: Context<{}, "/radar", {
     //} else {
     //  tracks.push(...tracks_.items)
     //}
+    console.log(tracks_.items[0].id)
     // TODO: comment follow line when we arent the only person using this
+    tracks_.items.filter(obj => !obj.is_local)
+    tracks_.items.forEach((x) => {
+      ['album', 'available_markets', 'disc_number', 'explicit', 'external_ids', 'duration_ms', 'is_local', 'type', 'popularity', 'track_number'].forEach(y => delete x[y])
+    })
     tracks.push(...tracks_.items)
     tracks = shuffle(tracks)
     //i === 0 ? null : tracks.concat(tracks_)
@@ -209,45 +208,9 @@ export default async (c: Context<{}, "/radar", {
   console.log('length', tracks.length)
   tracks.splice(SONG_LIST_LIMIT)
   console.log('point1')
-
-  let [er, profile] = await safeAwait(mainUser.currentUser.profile())
-  if (er) {
-    console.error(er)
-  }
-  let y = profile?.product
-  //let y = (await mainUser.currentUser.profile()).product
-
-  if (y === 'premium') {
-    console.log('point2')
-
-    let [err, state] = await safeAwait(mainUser.player.getPlaybackState())
-    if (err) {
-      console.log('stateError', err)
-      //return 
-    }
-    console.log('state', state)
-    if (state === null) {
-      return ba(c, {
-        type: 'NO_PLAYER'
-      })
-    }
-    tracks.forEach(async (x) => {
-      try {
-        await mainUser.player.addItemToPlaybackQueue(x.uri)
-      } catch (e) {
-        console.log(e)
-      }
-    })
-  } else {
-    return ba(c, {
-      type: 'NO_PREMIUM'
-    })
-  }
+  // console.log(tracks)
+  return ba(c, tracks)
+})
 
 
-  return go(c, {
-    nearby: nearby.length,
-    tracks: tracks.length
-  })
-}
-//
+export default app

@@ -1,24 +1,15 @@
-import { Hono, type Context } from 'hono'
-import { z } from 'zod'
-import { zValidator } from '@hono/zod-validator'
+import { Hono } from 'hono'
+
 import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
 import { logger } from 'hono/logger'
 import { AxiosError } from 'axios';
 import qs from 'qs'
 import safeAwait from 'safe-await';
 import { sign, verify, decode } from 'hono/jwt'
-import { createBunWebSocket } from 'hono/bun'
-import type { ServerWebSocket } from 'bun'
 import os from 'os';
-import { bearerAuth } from 'hono/bearer-auth'
 import { sentry } from '@hono/sentry'
-
-const { upgradeWebSocket, websocket } =
-  createBunWebSocket<ServerWebSocket>()
 import prisma from './prisma';
-import ws from './ws'
 import { a, AUTH_HEADER, ba, go, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from './utils'
-//import { getTopTracks } from './spotify';
 import radar from './radar';
 
 
@@ -45,13 +36,6 @@ app.use('*', sentry())
 
 app.onError((err, c) => {
   console.error(err)
-  //console.log(err.stack);
-  //console.log("");
-  //console.log("-- captureStackTrace --");
-  //console.log("");
-  //Error.captureStackTrace(err);
-  //console.log(err.stack);
-  //console.log(Bun.inspect(err, { colors: true }))
   return c.json({
     msg: err.message,
     ok: false
@@ -170,20 +154,14 @@ app.get('/valid', async (c) => {
   }
 })
 
-const radarValid = z.object({
-  lat: z.number(),
-  long: z.number(),
-})
 
-app.post('/radar', zValidator('json', radarValid), radar)
 
-app.get('/ws', upgradeWebSocket((c) => ws(c)))
+app.route('/', radar)
 
 
 Bun.serve({
   fetch: app.fetch,
   port: 3000,
-  //websocket,
 })
 
 //const worker = new Worker("./worker.ts");

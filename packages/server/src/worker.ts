@@ -2,12 +2,12 @@ declare var self: Worker;
 
 import * as Sentry from "@sentry/bun";
 
-
-Sentry.init({
-  dsn: Bun.env.SENTRY_DSN,
-  maxBreadcrumbs: 50,
-  debug: true,
-});
+// will print out a shit ton of msgs to log goddamn
+// Sentry.init({
+//   dsn: Bun.env.SENTRY_DSN,
+//   maxBreadcrumbs: 50,
+//   debug: true,
+// });
 
 import redis from './redis';
 import { REDIS_EXPIRE_KEY, REDIS_GEO_KEY } from './utils';

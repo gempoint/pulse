@@ -1,5 +1,7 @@
 import axios from 'axios';
 import type { Context } from 'hono';
+import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+
 export const a = axios.create({
   headers: {
     'User-Agent': 'Pulse-API (idk)'
@@ -30,6 +32,8 @@ export function shuffle<T>(array: T[]): T[] {
 };
 
 
+export const spotify = SpotifyApi.withClientCredentials(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
+
 
 export const go = (x: Context, y: unknown) => x.json({ msg: y, ok: true });
 
@@ -40,3 +44,12 @@ export const REDIS_GEO_KEY = 'user_loc'
 export const REDIS_EXPIRE_KEY = 'geo_expire'
 
 export const expirationTime = 3600;  // Expire in 1 hour (3600 seconds)
+
+
+declare module "bun" {
+  interface Env {
+    SPOTIFY_CLIENT_ID: string
+    SPOTIFY_CLIENT_SECRET: string
+    SECRET: string
+  }
+}
