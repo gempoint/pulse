@@ -1,3 +1,5 @@
+// TODO: turn this into a microservice thats seperate from the actual api for better performance? idk
+
 declare var self: Worker;
 
 import * as Sentry from "@sentry/bun";

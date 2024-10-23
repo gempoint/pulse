@@ -16,6 +16,8 @@ export const apiEndpoint = () => {
   if (Constants.expoConfig?.hostUri) {
     const PORT = 3000
     return `${`http://${Constants.expoConfig?.hostUri?.split(':')[0]}:${PORT}`}`
+    // for mock testing, dont expect actual responses back
+    //return 'https://852bef76-cad2-4a9f-b58e-17d08cda6df4.mock.pstmn.io'
   } else {
     return `https://www.i0x0.wtf`
   }

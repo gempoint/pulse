@@ -7,12 +7,24 @@ exclude = ["index.node"]
 
 [lib]
 crate-type = ["cdylib"]
+path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-neon = "1"
+neon = {version = "1", features = ["napi-7"]}
 rand = "0.8.5"
 rayon = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+puffin = "0.19"
+puffin_http = "0.16"
+crossbeam-channel = "0.5.13"
+crossbeam = "0.8"
+num_cpus = "1.13"
+dashmap = "5.4"
+ocl = "0.19" 
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary
+opt-level = "s"

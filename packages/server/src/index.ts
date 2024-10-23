@@ -12,9 +12,6 @@ import prisma from './prisma';
 import { a, AUTH_HEADER, ba, go, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from './utils'
 import radar from './radar';
 
-
-//console.log()
-
 const getLocalIP = () => {
   const interfaces = os.networkInterfaces();
   for (const interfaceName in interfaces) {
@@ -179,5 +176,8 @@ worker.addEventListener("close", event => {
   console.log("worker is being closed");
 });
 
+//process.on("SIGINT", () => {
+//  worker.terminate()
+//});
 
 //export default app

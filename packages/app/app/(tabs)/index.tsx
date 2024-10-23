@@ -1,97 +1,145 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import { Button, Text } from 'tamagui';
 import * as Location from 'expo-location';
 import axios from "axios";
 import { apiEndpoint } from '@/constants/idk';
 import * as SecureStore from 'expo-secure-store';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToastController } from '@tamagui/toast';
 import safeAwait from 'safe-await';
-
+import { router } from 'expo-router';
+import { radar } from '@/constants/api';
 
 export default function Tab() {
-  const [nearby, setNearby] = useState<number | null>(null)
-  const [tracks, setTracks] = useState<number | null>(null)
-  const toastController = useToastController()
+  const toastController = useToastController();
+  const [isLoading, setIsLoading] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  interface Nearby {
-    msg: {
-      nearby: number,
-      tracks: number
-    },
-    ok: true
-  }
-
-  interface Error {
-    msg: {
-      type: "NO_PREMIUM" | "NO_PLAYER"
-    },
-    ok: false
-  }
-
-  const radar = async () => {
-    let test = await Location.getForegroundPermissionsAsync()
-    console.log(test)
-    if (!test.granted) {
-      await Location.requestForegroundPermissionsAsync();
-    }
-    let loc = await Location.getCurrentPositionAsync({});
-    if (!loc) {
-      return
-    }
-    let token = await SecureStore.getItemAsync('TOKEN') as string
-    let [err, x] = await safeAwait(axios.post<Nearby | Error>(`${apiEndpoint()}/radar`, {
-      lat: loc.coords.latitude,
-      long: loc.coords.longitude
-    }, {
-      headers: {
-        'Authorization': 'Bearer ' + token
-      }
-    })
-    )
-
-    if (err) {
-      toastController.show('something wrong happened', {
-        customData: {
-          error: true
-        }
+  const animatePress = () => {
+    // Scale down and fade slightly
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0.8,
+        duration: 150,
+        useNativeDriver: true,
       })
-      return
-    }
-    let { data } = x
-    console.log(data)
-    if (!data.ok) {
-      switch (data.msg.type) {
-        case "NO_PLAYER":
-          toastController.show(`no active player detected`, {
-            customData: {
-              error: true
-            }
-          })
-          break;
-        case "NO_PREMIUM":
-          toastController.show(`you dont have spotify premium`, {
-            customData: {
-              error: true
-            }
-          })
-          break;
+    ]).start();
+  };
+
+  const animateRelease = () => {
+    // Scale back up and restore opacity
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      })
+    ]).start();
+  };
+
+  const apiRadar = async () => {
+    setIsLoading(true);
+    try {
+      let test = await Location.getForegroundPermissionsAsync();
+      console.log(test);
+      if (!test.granted) {
+        await Location.requestForegroundPermissionsAsync();
       }
-    } else {
-      //toastController.show(`added ${data.msg.tracks} tracks from ${data.msg.nearby} users nearby`)
-      setNearby(data.msg.nearby)
-      setTracks(data.msg.tracks)
+      let loc = await Location.getCurrentPositionAsync({});
+      if (!loc) {
+        return;
+      }
 
+      console.log('loc', loc);
+      let [err, data] = await safeAwait(radar(loc.coords.latitude, loc.coords.longitude));
+
+      if (err) {
+        toastController.show('something wrong happened', {
+          customData: {
+            error: true
+          }
+        });
+        return;
+      }
+
+      console.log(data);
+      if (!data?.ok) {
+        switch (data?.msg.type) {
+          case "NO_PLAYER":
+            toastController.show(`no active player detected`, {
+              customData: {
+                error: true
+              }
+            });
+            break;
+          case "NO_PREMIUM":
+            toastController.show(`you dont have spotify premium`, {
+              customData: {
+                error: true
+              }
+            });
+            break;
+        }
+      } else {
+        router.push({
+          pathname: '/selector',
+          params: { data: JSON.stringify(data.msg) }
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-  }
+  // Custom animated button wrapper
+  const AnimatedButton = ({ children, onPress }) => {
+    return (
+      <Animated.View
+        style={[
+          styles.buttonWrapper,
+          {
+            transform: [{ scale: scaleAnim }],
+            opacity: opacityAnim,
+          }
+        ]}
+      >
+        <Button
+          alignSelf="center"
+          color="black"
+          disabled={isLoading}
+          onPressIn={animatePress}
+          onPressOut={animateRelease}
+          onPress={onPress}
+        >
+          {children}
+        </Button>
+      </Animated.View>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/*<Text>Tab [Home|Index]</Text>*/}
-      {nearby && <Text>{nearby}</Text>}
-      {tracks && <Text>{tracks}</Text>}
-      <Button alignSelf="center" backgroundColor={"white"} color={"black"} onTouchEnd={radar}>Radar</Button>
+      <AnimatedButton onPress={apiRadar}>
+        {isLoading ? (
+          <View style={styles.buttonContent}>
+            <ActivityIndicator color="white" style={styles.loader} />
+            <Text color="white">Loading...</Text>
+          </View>
+        ) : (
+          "Radar"
+        )}
+      </AnimatedButton>
     </View>
   );
 }
@@ -101,5 +149,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonWrapper: {
+    width: 120,  // Adjust based on your needs
+    height: 40,  // Adjust based on your needs
+  },
+  button: {
+    width: '100%',
+    height: '100%',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loader: {
+    marginRight: 8,
   },
 });

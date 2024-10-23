@@ -1,91 +1,117 @@
 export interface Song {
-  song_id: string;
+  id: string;
   danceability: number;
   energy: number;
   acousticness: number;
   valence: number;
-  origin: string; // User ID of the song's origin
 }
 
 export interface User {
-  user_id: string;
+  id: string;
   songs: Song[];
 }
 
-type SongMetadata = [number, number, number, number]; // [danceability, energy, acousticness, valence]
-
-export function calculateAverage(user: User): SongMetadata {
-  const totalSongs = user.songs.length;
-  const totals: SongMetadata = [0, 0, 0, 0];
-
-  for (const song of user.songs) {
-    totals[0] += song.danceability;
-    totals[1] += song.energy;
-    totals[2] += song.acousticness;
-    totals[3] += song.valence;
-  }
-
-  return totals.map(total => total / totalSongs) as SongMetadata;
+export interface RecommendedSong extends Song {
+  userId: string;
+  similarityScore: number;
 }
 
-export async function findTopMatches(currentUser: User, otherUsers: User[], n: number): Promise<string[]> {
-  const workerCount = navigator.hardwareConcurrency || 4; // Use available cores or default to 4
-  const usersPerWorker = Math.ceil(otherUsers.length / workerCount);
+export function getRecommendations(
+  baseUser: User,
+  otherUsers: User[],
+  limit: number
+): RecommendedSong[] {
+  // Calculate average preferences for base user
+  const basePreferences = baseUser.songs.reduce(
+    (acc, song) => ({
+      danceability: acc.danceability + song.danceability,
+      energy: acc.energy + song.energy,
+      acousticness: acc.acousticness + song.acousticness,
+      valence: acc.valence + song.valence,
+    }),
+    { danceability: 0, energy: 0, acousticness: 0, valence: 0 }
+  );
 
-  const workerPromises = [];
-  for (let i = 0; i < workerCount; i++) {
-    const start = i * usersPerWorker;
-    const end = Math.min((i + 1) * usersPerWorker, otherUsers.length);
-    const workerUsers = otherUsers.slice(start, end);
+  const songCount = baseUser.songs.length;
+  const avgPreferences = {
+    danceability: basePreferences.danceability / songCount,
+    energy: basePreferences.energy / songCount,
+    acousticness: basePreferences.acousticness / songCount,
+    valence: basePreferences.valence / songCount,
+  };
 
-    const worker = new Worker(new URL("worker.ts", import.meta.url).href);;
-    const promise = new Promise<{ userId: string, distance: number }[]>((resolve) => {
-      worker.onmessage = (e) => {
-        resolve(e.data);
-        worker.terminate();
+  // Calculate similarity scores for all songs from other users
+  const allPotentialSongs: RecommendedSong[] = otherUsers.flatMap((user) =>
+    user.songs.map((song) => {
+      // Calculate base similarity score
+      const similarityScore =
+        1 -
+        (Math.abs(avgPreferences.danceability - song.danceability) +
+          Math.abs(avgPreferences.energy - song.energy) +
+          Math.abs(avgPreferences.acousticness - song.acousticness) +
+          Math.abs(avgPreferences.valence - song.valence)) /
+        4;
+
+      // Add controlled randomness (±10% variation)
+      const randomFactor = 0.9 + Math.random() * 0.2; // Random number between 0.9 and 1.1
+      const finalScore = similarityScore * randomFactor;
+
+      return {
+        ...song,
+        userId: user.id,
+        similarityScore: finalScore,
       };
-    });
+    })
+  );
 
-    worker.postMessage({ currentUser, otherUsers: workerUsers });
-    workerPromises.push(promise);
-  }
+  // Filter out songs that are too different (similarity score < 0.5)
+  const filteredSongs = allPotentialSongs.filter(
+    (song) => song.similarityScore >= 0.5
+  );
 
-  const results = await Promise.all(workerPromises);
-  console.log(results);
-  const allDistances = results.flat();
-  allDistances.sort((a, b) => a.distance - b.distance);
-  return allDistances.slice(0, n).map(match => match.userId);
+  // Sort by similarity score and add randomness to the selection
+  const sortedSongs = filteredSongs.sort((a, b) => {
+    // Add small random factor to break ties and add variety
+    const randomOffset = (Math.random() - 0.5) * 0.1; // ±5% random variation
+    return b.similarityScore + randomOffset - (a.similarityScore + randomOffset);
+  });
+
+  // Return top N recommendations
+  return sortedSongs.slice(0, limit);
 }
 
-//// Example usage
-//const currentUser: User = {
-//  user_id: "current_user_id",
-//  songs: [
-//    { song_id: "song_1", danceability: 0.8, energy: 0.6, acousticness: 0.2, valence: 0.7, origin: "current_user_id" },
-//    { song_id: "song_2", danceability: 0.7, energy: 0.8, acousticness: 0.1, valence: 0.9, origin: "current_user_id" },
-//  ]
-//};
+// Helper function to get diversity score of recommendations
+function getDiversityScore(recommendations: RecommendedSong[]): number {
+  if (recommendations.length <= 1) return 1;
 
-//const otherUsers: User[] = [
-//  {
-//    user_id: "user_1",
-//    songs: [
-//      { song_id: "song_3", danceability: 0.75, energy: 0.65, acousticness: 0.15, valence: 0.8, origin: "user_1" },
-//      { song_id: "song_4", danceability: 0.85, energy: 0.7, acousticness: 0.1, valence: 0.85, origin: "user_1" },
-//    ]
-//  },
-//  {
-//    user_id: "user_2",
-//    songs: [
-//      { song_id: "song_5", danceability: 0.6, energy: 0.5, acousticness: 0.3, valence: 0.6, origin: "user_2" },
-//      { song_id: "song_6", danceability: 0.5, energy: 0.4, acousticness: 0.4, valence: 0.5, origin: "user_2" },
-//    ]
-//  }
-//];
+  let totalVariance = 0;
+  const features = ['danceability', 'energy', 'acousticness', 'valence'] as const;
 
-//// Run multiple times to see different results
-//for (let i = 0; i < 5; i++) {
-//  findTopMatches(currentUser, otherUsers, 2).then(topMatches => {
-//    console.log(`Run ${i + 1} - Top matches:`, topMatches);
-//  });
-//}
+  features.forEach((feature) => {
+    const values = recommendations.map((song) => song[feature]);
+    const mean = values.reduce((a, b) => a + b) / values.length;
+    const variance =
+      values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) /
+      values.length;
+    totalVariance += variance;
+  });
+
+  return Math.min(1, totalVariance / features.length);
+}
+
+// Example usage:
+// const baseUser: User = {
+//   id: "user1",
+//   songs: [
+//     {
+//       id: "song1",
+//       danceability: 0.8,
+//       energy: 0.7,
+//       acousticness: 0.2,
+//       valence: 0.6
+//     }
+//   ]
+// };
+// 
+// const otherUsers: User[] = [/* ... */];
+// const recommendations = getRecommendations(baseUser, otherUsers, 5);

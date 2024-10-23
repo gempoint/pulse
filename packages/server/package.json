@@ -8,6 +8,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.42",
     "@types/bun": "latest",
+    "@types/lodash": "^4.17.12",
     "@types/qs": "^6.9.16",
     "drizzle-prisma-generator": "^0.1.7",
     "prisma": "^5.19.1"
@@ -16,6 +17,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "0x": "^5.7.0",
     "@hono/sentry": "^1.2.0",
     "@hono/zod-validator": "^0.2.2",
     "@keyv/redis": "^3.0.1",
@@ -28,6 +30,7 @@
     "hono": "^4.6.1",
     "keyv": "^5.0.1",
     "ky": "^1.7.2",
+    "lodash": "^4.17.21",
     "qs": "^6.13.0",
     "redis": "^4.7.0",
     "safe-await": "^2.0.0",

@@ -1,7 +1,7 @@
 //import '../tamagui-web.css'
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Slot, Stack, useNavigationContainerRef } from 'expo-router'
+import { router, Slot, Stack, useNavigationContainerRef } from 'expo-router'
 import { Linking, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 import { tamaguiConfig } from '../tamagui.config'
@@ -15,11 +15,8 @@ import Constants from 'expo-constants';
 import { isDev } from '@/constants/idk'
 import isAuthed from '@/hooks/isAuthed'
 import CurrentToast from '@/components/CurrentToast'
-
-//Linking.addEventListener('url', (u) => {
-//  console.log(u)
-//  WebBrowser.dismissBrowser()
-//})
+import { ArrowLeft } from '@tamagui/lucide-icons'
+import { Pressable } from 'react-native'
 
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 console.log('devMode:', __DEV__)
@@ -64,14 +61,37 @@ function RootLayout() {
   console.log(colorScheme)
   return (
     // add this
-    <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme!}>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme={'dark'}>
       <ThemeProvider value={DarkTheme}>
-        {/*<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>*/}
         <SafeAreaProvider>
           <ToastProvider>
             <CurrentToast />
             <ToastViewport flexDirection="column-reverse" top={top} left={left} right={right} />
-            <Slot />
+            {/*<Slot />*/}
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="auth" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="selector"
+                options={{
+                  //headerShown: false,
+                  headerStyle: {
+                    backgroundColor: '#000',
+                  },
+                  //header: () => { },
+                  headerLeft: () => (
+                    <Pressable
+                      onPress={() => router.back()}
+                    //className="p-2 ml-2"
+                    >
+                      <ArrowLeft color="white" size={24} />
+                    </Pressable>
+                  ),
+                  headerTitle: '',
+                  presentation: 'containedModal',
+                }}
+              />
+            </Stack>
           </ToastProvider>
         </SafeAreaProvider>
       </ThemeProvider>

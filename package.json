@@ -15,7 +15,9 @@
     "reinstall": "rimraf node_modules && bun install",
     "docker": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "lint": "node_modules/.bin/quick-lint-js packages/app/app/*/* && node_modules/.bin/quick-lint-js packages/server/src/**"
+    "lint": "node_modules/.bin/quick-lint-js packages/app/app/*/* && node_modules/.bin/quick-lint-js packages/server/src/**",
+    "init:server": "cd packages/server && bunx prisma generate && bun .",
+    "init:dev-server": "cd packages/server && bunx prisma generate && bun . --hot"
   },
   "trustedDependencies": [
     "@prisma/client",
@@ -23,6 +25,7 @@
     "@sentry/cli",
     "@swc/core",
     "esbuild",
+    "linux-perf",
     "pngquant-bin",
     "prisma",
     "quick-lint-js",

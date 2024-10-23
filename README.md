@@ -1,4 +1,4 @@
-# untitledradarappstack
+# untitledradarappstack [![wakatime](https://wakatime.com/badge/user/a3120ee8-8a1d-450b-b1ad-e300176a9657/project/5d0da85c-ed5c-4ed2-a804-9c015e66e59b.svg)](https://wakatime.com/badge/user/a3120ee8-8a1d-450b-b1ad-e300176a9657/project/5d0da85c-ed5c-4ed2-a804-9c015e66e59b)
 
 ## Folder Structure
 
@@ -17,12 +17,13 @@
 * there might be some bugs/security issues with auth (oops)
 * might not ever be a ios version unless i dev and build on a mac vm (not doing that)
 * for the love of everything that [linux runs on](https://www.youtube.com/watch?v=dQw4w9WgXcQ), dont use yarn or npm but use [bun](https://bun.sh/)
-* realistically there prob isnt a need for a realtime api if we want to build a "radar" like app
-  * aka user polls for data when they want to and we could keep a autodeleting (prob 1 hr leeway) key-value db for keeping track of loc and corresponding user dat for realistic radar feel
-  * randomly thought of at 12:18am 
 * why move to dragonflydb ![another show and tell](/docs/diagram_2.png)
+  * might switch back to redis bc there might be some timeout issues when connecting
 * should prob add more error checking in api but ¯\_(ツ)_/¯
 * might switch to rust for api (last resort for better performance)
+* for some reason it takes seconds to for like 5 users to analyse and return data even tho its written in rust (gotta improve that asap)
+* need to add social features
+* how tf does one improve api perfomance smh
 
 To install dependencies:
 
