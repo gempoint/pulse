@@ -6,7 +6,12 @@
   - `app` - (do i even gotta explain) built w/ expo & react native
   - `etc` - random stuff aka assets for app like icons and theme
   - `server` - (where most of the work is done) built w/ [hono](https://hono.dev/), [prisma](https://www.prisma.io/) and 2 braincells at 3am
-  - `realtime_ex` - hopefully when this app/company/idk grows, we can switch from a js runtime to elixir runtime for better realtime(ws) performance [guide for elixir](https://binarynoggin.com/blog/add-raw-websockets-in-phoenix/)
+  - `compute` - random benchmarking and central lib for 'algorithm'
+  - `compute-js` - js/ts port of 'algorithm'
+  - `compute-rs` - rust port of 'algorithm'
+  - `compute-wasm` wasm port of 'algorithm' (not done at all)
+  - `microservices` - random rust code put together to run small tasks
+
 
 
 ## Docs/random bits of info

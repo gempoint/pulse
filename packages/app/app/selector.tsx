@@ -17,7 +17,7 @@ import { BlurView } from 'expo-blur'
 import { Check, Music } from '@tamagui/lucide-icons'
 import type { Track, PlaylistViewerProps } from "etc"
 import safeAwait from 'safe-await';
-import { radarFinal } from '@/constants/api'
+import { radarFinal } from '@/etc/api'
 import { useToastController } from '@tamagui/toast'
 
 export default function PlaylistViewer() {
@@ -88,10 +88,31 @@ export default function PlaylistViewer() {
         customData: {
           error: true
         }
-      })
-      return
+      });
+      return;
     }
-    toastController.show(`added ${data?.msg.good} songs with ${data?.msg.bad} errors`)
+
+    console.log(data);
+    if (!data?.ok) {
+      switch (data?.msg.type) {
+        case "NO_PLAYER":
+          toastController.show(`no active player detected`, {
+            customData: {
+              error: true
+            }
+          });
+          break;
+        case "NO_PREMIUM":
+          toastController.show(`you dont have spotify premium`, {
+            customData: {
+              error: true
+            }
+          });
+          break;
+      }
+    } else {
+      toastController.show(`added ${data?.msg.good} songs with ${data?.msg.bad} errors`)
+    }
     //router.push({
     //  pathname: '/next-screen',
     //  params: { selectedTracks: JSON.stringify(selectedTrackIds) }

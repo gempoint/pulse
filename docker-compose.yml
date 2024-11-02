@@ -1,4 +1,4 @@
-#version: '3.8'
+version: '3.8'
 
 services:
   postgres:
@@ -13,19 +13,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  dragonfly:
-    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
-    ulimits:
-      memlock: -1
+  redis:
+    image: redis:7
+    container_name: my_redis
     ports:
       - "6379:6379"
-    # For better performance, consider `host` mode instead `port` to avoid docker NAT.
-    # `host` mode is NOT currently supported in Swarm Mode.
-    # https://docs.docker.com/compose/compose-file/compose-file-v3/#network_mode
-    network_mode: "host"
     volumes:
-      - dragonflydata:/data
+      - redis_data:/data
 
 volumes:
   postgres_data:
-  dragonflydata:
+  redis_data:

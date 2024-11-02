@@ -5,7 +5,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as WebBrowser from 'expo-web-browser';
 import { apiEndpoint } from '../constants/idk';
 import { useToastController } from '@tamagui/toast';
-import { ping } from '@/constants/api';
+import { ping } from '@/etc/api';
 
 const LogoContainer = styled(YStack, {
   alignItems: 'center',

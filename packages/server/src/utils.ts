@@ -17,6 +17,19 @@ export const AUTH_SECRET = btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`)
 export const AUTH_HEADER = `Basic ${AUTH_SECRET}`;
 export const DEFAULT_IMG = 'https://i.scdn.co/image/ab676161000051747baf6a3e4e70248079e48c5a'
 
+export const SAFE_VALUES = [
+  "id",
+  "verified",
+  "staff",
+  "artist",
+  "bio",
+  "color",
+  "name",
+  "username",
+  "pfp",
+  "state"
+];
+
 export function shuffle<T>(array: T[]): T[] {
   let currentIndex = array.length, randomIndex;
 
@@ -139,6 +152,52 @@ export const playlistOut = async (x: RecommendedSong[]): Promise<PlaylistViewerP
     data: {
       info: sd,
       count: x.length
+    }
+  }
+}
+
+//source: https://stackoverflow.com/a/55251598
+/**
+ * Flatten a multidimensional object
+ *
+ * For example:
+ *   flattenObject{ a: 1, b: { c: 2 } }
+ * Returns:
+ *   { a: 1, c: 2}
+ */
+export const flatten = (obj) => {
+  const flattened = {}
+
+  Object.keys(obj).forEach((key) => {
+    const value = obj[key]
+
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      Object.assign(flattened, flatten(value))
+    } else {
+      flattened[key] = value
+    }
+  })
+
+  return flattened
+}
+
+
+export class MyDeserializer {
+  async deserialize(e: any) {
+    const t = await e.text();
+    if (t.length > 0 && this.isParseable(t)) {
+      const e = JSON.parse(t)
+      return e
+    }
+    return null
+  }
+
+  isParseable(string: string) {
+    try {
+      const e = JSON.parse(string)
+      return true
+    } catch (error) {
+      return false
     }
   }
 }

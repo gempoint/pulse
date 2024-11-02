@@ -8,6 +8,7 @@ import { Buffer } from "buffer";
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { useToastController } from '@tamagui/toast';
+import { generateWord } from '@/constants/idk';
 
 const {
   deviceName,
@@ -27,23 +28,36 @@ export default function Tab() {
     if (message !== '') {
       Keyboard.dismiss()
       console.log('Feedback submitted:', { message })
-      const sentryId = Sentry.captureMessage("feedback_submit");
-      let token = await SecureStore.getItemAsync('TOKEN')!
-      //const [encodedHeader, encodedBody, signature] = token!.toString().split('.');
-      let id
-      const arr = token!.toString().split('.');
-      if (arr.length === 0) {
-        //um wtf?
-        id = 'unable-to-determine'
+      try {
+        const sentryId = Sentry.captureMessage(`feedback_submit-${generateWord()}`);
+        let token = await SecureStore.getItemAsync('TOKEN')!
+        //const [encodedHeader, encodedBody, signature] = token!.toString().split('.');
+        let id
+        const arr = token!.toString().split('.');
+        if (arr.length === 0) {
+          //um wtf?
+          id = 'unable-to-determine'
+        }
+        id = Buffer.from(arr[1], 'base64') as unknown as string
+        Sentry.captureUserFeedback({
+          event_id: sentryId,
+          name: id,
+          email: `${deviceName}@${type}-${manufacturer}.com`,
+          comments: message
+        })
+        toastController.show("😃👍", {
+          customData: {
+            error: false
+          }
+        })
+      } catch (err) {
+        console.log('e', err)
+        toastController.show("something wrong happened. instead email", {
+          customData: {
+            error: true
+          }
+        })
       }
-      id = Buffer.from(arr[1], 'base64') as unknown as string
-      Sentry.captureUserFeedback({
-        event_id: sentryId,
-        name: id,
-        email: `${deviceName}@${type}-${manufacturer}.com`,
-        comments: message
-      })
-      toastController.show("😃👍")
       setMessage('')
     }
   }

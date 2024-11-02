@@ -1,13 +1,15 @@
-import { View, StyleSheet } from 'react-native';
-import { Button, Text } from 'tamagui';
+import { router } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { View, Button, Text } from 'tamagui';
 
 
 export default function NotFound() {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} space="$2">
       <Text color="$white05" paddingBottom="$3">¯\_(ツ)_/¯</Text>
       <Text color="$white05" paddingBottom="$3">¯nothing here</Text>
-    </View>
+      <Button onPress={() => router.back()}>Go Back?</Button>
+    </View >
   );
 }
 

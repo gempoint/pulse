@@ -11,6 +11,15 @@ export const scopes: SpotifyScope[] = [
   "user-modify-playback-state" //add to queue
 ]
 
+export const generateWord = () => {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let word = "";
+  for (let i = 0; i < 9; i++) {
+    word += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return word;
+};
+
 export const apiEndpoint = () => {
   //console.log(Constants.executionEnvironment)
   if (Constants.expoConfig?.hostUri) {

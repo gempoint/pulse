@@ -1,5 +1,6 @@
 {
   "rust-analyzer.linkedProjects": [
-    "packages/compute-rs/Cargo.toml"
+    "packages/compute-rs/Cargo.toml",
+    "packages/microservices/Cargo.toml"
   ]
 }

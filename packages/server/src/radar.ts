@@ -1,4 +1,4 @@
-import { a, AUTH_HEADER, ba, expirationTime, go, playlistOut, REDIS_EXPIRE_KEY, REDIS_GEO_KEY, SECRET, shuffle, spotify, SPOTIFY_CLIENT_ID, userConverter, usersConverter } from "./utils";
+import { a, AUTH_HEADER, ba, expirationTime, go, MyDeserializer, playlistOut, REDIS_EXPIRE_KEY, REDIS_GEO_KEY, SECRET, shuffle, spotify, SPOTIFY_CLIENT_ID, userConverter, usersConverter } from "./utils";
 import { verify } from "hono/jwt";
 import safeAwait from "safe-await";
 import redis from "./redis";
@@ -11,33 +11,11 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from 'zod'
 import _ from "lodash"
 import { getRecommendations } from 'compute';
-//import type { Track as TTrack, Playlist, PlaylistViewerProps } from "etc"
 
 const app = new Hono()
 
 const SONG_LIST_LIMIT = 10
-const RANDOM_ASS_CALLBACK_LIMIT = 10
-
-class MyDeserializer {
-  async deserialize(e: any) {
-    const t = await e.text();
-    if (t.length > 0 && this.isParseable(t)) {
-      const e = JSON.parse(t)
-      return e
-    }
-    return null
-  }
-
-  isParseable(string: string) {
-    try {
-      const e = JSON.parse(string)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-}
-
+const RANDOM_ASS_CALLBACK_LIMIT = 5
 
 const radarValid = z.object({
   lat: z.number(),
@@ -143,6 +121,30 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
     // https://github.com/spotify/spotify-web-api-ts-sdk/issues/127 ¯\_(ツ)_/¯
     deserializer: new MyDeserializer()
   })
+
+  let [er, profile] = await safeAwait(mainUser.currentUser.profile())
+  if (er) {
+    console.error(er)
+  }
+  let y = profile?.product
+
+  if (y !== 'premium') {
+    return ba(c, {
+      type: 'NO_PREMIUM'
+    })
+  } else {
+    let [err, state] = await safeAwait(mainUser.player.getPlaybackState())
+    if (err) {
+      console.log('stateError', err)
+      //return 
+    }
+    console.log('state', state)
+    if (state === null) {
+      return ba(c, {
+        type: 'NO_PLAYER'
+      })
+    }
+  }
 
   let userTracks: Track[] = []
   //if (v.src === 'top') {
@@ -293,6 +295,30 @@ app.post('/radarFinal', zValidator('json', radarFinalValid), async (c) => {
     // https://github.com/spotify/spotify-web-api-ts-sdk/issues/127 ¯\_(ツ)_/¯
     deserializer: new MyDeserializer()
   })
+
+  let [er, profile] = await safeAwait(mainUser.currentUser.profile())
+  if (er) {
+    console.error(er)
+  }
+  let y = profile?.product
+
+  if (y !== 'premium') {
+    return ba(c, {
+      type: 'NO_PREMIUM'
+    })
+  } else {
+    let [err, state] = await safeAwait(mainUser.player.getPlaybackState())
+    if (err) {
+      console.log('stateError', err)
+      //return 
+    }
+    console.log('state', state)
+    if (state === null) {
+      return ba(c, {
+        type: 'NO_PLAYER'
+      })
+    }
+  }
 
   let good = 0
   let bad = 0

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "finished" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "public" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "shadowed" BOOLEAN NOT NULL DEFAULT false;

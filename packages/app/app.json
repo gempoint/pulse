@@ -16,12 +16,16 @@
       "DSN": "https://04ce65a60dd9b50514b823edaa61c830@o4504234803068928.ingest.us.sentry.io/4507992564498432",
       "eas": {
         "projectId": "b001b175-feb7-45fa-b272-ea7e2bfa1b1c"
-      }
+      },
+      "FB_ID": "813841664076339"
     },
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gempoint.pulse"
+      "bundleIdentifier": "com.gempoint.pulse",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["instagram-stories"]
+      }
     },
     "android": {
       "package": "com.gempoint.pulse",

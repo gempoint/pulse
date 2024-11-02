@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useToastController } from '@tamagui/toast';
 import safeAwait from 'safe-await';
 import { router } from 'expo-router';
-import { radar } from '@/constants/api';
+import { radar } from '@/etc/api';
 
 export default function Tab() {
   const toastController = useToastController();

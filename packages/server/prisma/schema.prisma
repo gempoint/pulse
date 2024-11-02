@@ -19,9 +19,14 @@ datasource db {
 }
 
 model User {
-  id            String   @id
-  following     User[]   @relation(name: "UserToUser")
-  followers     User[]   @relation(name: "UserToUser")
+  id            String   @id @unique
+  name          String   @default("dummy_text")
+  username      String   @unique @default("dummy_username")
+  friends       User[]   @relation("FriendToFriend")
+  friendsOf     User[]   @relation("FriendToFriend")
+  pfp           String   @default("https://i.scdn.co/image/ab676161000051747baf6a3e4e70248079e48c5a")
+  incomingReq   User[]   @relation("Req")
+  outgoingReq   User[]   @relation("Req")
   verified      Boolean  @default(false)
   staff         Boolean  @default(false)
   artist        Boolean  @default(false)
@@ -29,4 +34,10 @@ model User {
   access_token  String
   refresh_token String
   token         String
+  bio           String   @default("im new to dis")
+  public        Boolean  @default(true)
+  finished      Boolean  @default(false)
+  shadowed      Boolean  @default(false)
+  color         String   @default("#EB459E")
+  state         Json?
 }

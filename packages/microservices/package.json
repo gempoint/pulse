@@ -1,0 +1,11 @@
+{
+  "name": "microservices",
+  "scripts": {
+    "prepare": "if-env CI=1 && exit || cargo build",
+    "run": "cargo run --release",
+    "run:release": "cargo run --release"
+  },
+  "devDependencies": {
+    "if-env": "^1.0.4"
+  }
+}
