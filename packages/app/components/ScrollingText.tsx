@@ -33,7 +33,7 @@ export default class TextMarquee extends PureComponent<TextTickerProps> {
     isInteraction: true,
     useNativeDriver: true,
     repeatSpacer: 50,
-    easing: Easing.ease,
+    easing: Easing.linear,
     animationType: 'auto',
     bounceSpeed: 50,
     scrollSpeed: 150,

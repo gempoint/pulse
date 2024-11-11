@@ -1,12 +1,11 @@
 import { sign, verify } from "hono/jwt";
-import { a, AUTH_HEADER, ba, DEFAULT_IMG, go, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from "./utils";
+import { a, auth, AUTH_HEADER, ba, DEFAULT_IMG, getLocalIP, go, SECRET, SPOTIFY_ACCOUNTS_ENDPOINT, SPOTIFY_CLIENT_ID } from "./utils";
 import safeAwait from "safe-await";
 import prisma from "./prisma";
 import type { AxiosError } from "axios";
 import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
 import { Hono } from "hono";
 import qs from 'qs';
-import os from 'os';
 import { getAverageColor } from 'fast-average-color-node';
 
 const scopes: string = [
@@ -23,17 +22,7 @@ const scopes: string = [
 const app = new Hono()
 
 
-const getLocalIP = () => {
-  const interfaces = os.networkInterfaces();
-  for (const interfaceName in interfaces) {
-    const addresses = interfaces[interfaceName];
-    for (const address of addresses!) {
-      if (address.family === 'IPv4' && !address.internal) {
-        return address.address;
-      }
-    }
-  }
-};
+
 
 const redirect_uri = `http://${getLocalIP()}:3000/callback`;
 
@@ -99,13 +88,16 @@ app.get('/callback', async (c) => {
     pos = await prisma.user.create({
       data: {
         id: spotifyId,
-        name: profile.display_name,
-        pfp,
-        color,
         access_token: res?.data.access_token as string,
         refresh_token: res?.data.refresh_token as string,
         token: "",
-        verified: false,
+        profile: {
+          create: {
+            color,
+            pfp,
+            name: profile.display_name,
+          }
+        }
       }
     })
   } else {
@@ -114,7 +106,6 @@ app.get('/callback', async (c) => {
         id: pos?.id
       },
       data: {
-        //name: profile.display_name,
         access_token: res?.data.access_token as string,
         refresh_token: res?.data.refresh_token as string,
       }
@@ -132,20 +123,10 @@ app.get('/callback', async (c) => {
   }
 })
 
-app.get('/valid', async (c) => {
-  let auth = c.req.header('Authorization')
-  console.log(auth)
-  if (!auth) {
-    return ba(c, 'no auth token')
-  }
-  const [err, dat] = await safeAwait(verify(auth.replace('Bearer ', ''), (SECRET as unknown as string)))
 
-  if (err) {
-    console.log(err)
-    return ba(c, 'bad token')
-  }
 
-  if (dat) {
+app.get('/valid', auth(), async (c) => {
+  if (c.get('id')) {
     return go(c, '')
   }
 })

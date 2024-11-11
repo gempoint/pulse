@@ -1,3 +1,4 @@
+import Spin from "@/components/Spin";
 import { User, userFetch } from "@/etc/api";
 import { ShieldHalf, Verified } from "@tamagui/lucide-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -66,7 +67,7 @@ export default function Profile() {
   if (isLoading && !isRefreshing) {
     return (
       <View style={styles.centerContainer}>
-        <Spinner size="large" color="$accentColor" />
+        <Spin />
       </View>
     );
   }

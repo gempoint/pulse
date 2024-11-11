@@ -1,5 +1,4 @@
-import { a, AUTH_HEADER, ba, expirationTime, go, MyDeserializer, playlistOut, REDIS_EXPIRE_KEY, REDIS_GEO_KEY, SECRET, shuffle, spotify, SPOTIFY_CLIENT_ID, userConverter, usersConverter } from "./utils";
-import { verify } from "hono/jwt";
+import { a, auth, AUTH_HEADER, ba, expirationTime, go, MyDeserializer, playlistOut, REDIS_EXPIRE_KEY, REDIS_GEO_KEY, SECRET, shuffle, spotify, SPOTIFY_CLIENT_ID, userConverter, usersConverter } from "./utils";
 import safeAwait from "safe-await";
 import redis from "./redis";
 import { SpotifyApi, type AccessToken, type Page, type Track } from "@spotify/web-api-ts-sdk";
@@ -27,21 +26,9 @@ const radarFinalValid = z.object({
   songs: z.array(z.string())
 })
 
-app.post('/radar', zValidator('json', radarValid), async (c) => {
+app.post('/radar', zValidator('json', radarValid), auth(), async (c) => {
   const v = c.req.valid('json')
-  let auth = c.req.header('Authorization')
-  console.log(auth)
-  if (!auth) {
-    return ba(c, 'no auth token')
-  }
-  auth = auth.replace('Bearer ', '')
-  //console.log(auth)
 
-  const [err, dat] = await safeAwait(verify(auth, (SECRET as unknown as string)))
-  if (err) {
-    console.log(err)
-    return ba(c, 'bad token')
-  }
   //const { payload } = decode(auth)
   console.log('lat', v.lat)
   console.log('long', v.long)
@@ -51,13 +38,13 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
   let x = await redis.geoAdd(REDIS_GEO_KEY, {
     latitude: v.lat!,
     longitude: v.long!,
-    member: dat.id! as string,
+    member: c.get('id')
   })
   console.log(x)
 
   await redis.zAdd(REDIS_EXPIRE_KEY, {
     score: expirationTimestamp,
-    value: dat.id! as string
+    value: c.get('id')
   })
 
   // had to change bc of change from redis -> dragonfly for better performance
@@ -82,7 +69,7 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
   //}
 
   let user = await prisma.user.findUnique({
-    where: { id: dat.id as unknown as string }
+    where: { id: c.get('id') }
   })
 
   console.log(user?.id)
@@ -168,15 +155,20 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
       list[id] = dat.tracks.items.map(i => i.track)
     } else {
       console.log('id', id)
-      let user = await prisma.user.findUnique({
+      let [e, user] = await safeAwait(prisma.user.findUnique({
         where: { id }
-      })
+      }))
+
+      if (user === null) {
+        console.error('user doesnt exist?')
+        continue
+      }
       //console.log()
       //let token = getAccessToken(user!)
       console.log(`getting token of ${id}`)
       let [err, dat] = await safeAwait(a.post<AccessToken>("https://accounts.spotify.com/api/token", {
         grant_type: 'refresh_token',
-        refresh_token: user!.refresh_token,
+        refresh_token: user.refresh_token,
         //client_id: Bun.env.SPOTIFY_CLIENT_ID
       }, {
         headers: {
@@ -238,24 +230,11 @@ app.post('/radar', zValidator('json', radarValid), async (c) => {
   return go(c, hell)
 })
 
-app.post('/radarFinal', zValidator('json', radarFinalValid), async (c) => {
+app.post('/radarFinal', zValidator('json', radarFinalValid), auth(), async (c) => {
   const v = c.req.valid('json')
-  let auth = c.req.header('Authorization')
-  console.log(auth)
-  if (!auth) {
-    return ba(c, 'no auth token')
-  }
-  auth = auth.replace('Bearer ', '')
-  //console.log(auth)
-
-  const [err, dat] = await safeAwait(verify(auth, (SECRET as unknown as string)))
-  if (err) {
-    console.log(err)
-    return ba(c, 'bad token')
-  }
 
   let user = await prisma.user.findUnique({
-    where: { id: dat.id as unknown as string }
+    where: { id: c.get('id') }
   })
 
   console.log(user?.id)

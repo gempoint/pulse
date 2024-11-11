@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 //generator drizzle {
@@ -18,26 +19,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StatType {
+  View
+}
+
+model Stat {
+  type    StatType
+  special String
+  data    Json?
+
+  @@id([type, special])
+}
+
 model User {
-  id            String   @id @unique
-  name          String   @default("dummy_text")
-  username      String   @unique @default("dummy_username")
-  friends       User[]   @relation("FriendToFriend")
-  friendsOf     User[]   @relation("FriendToFriend")
-  pfp           String   @default("https://i.scdn.co/image/ab676161000051747baf6a3e4e70248079e48c5a")
-  incomingReq   User[]   @relation("Req")
-  outgoingReq   User[]   @relation("Req")
-  verified      Boolean  @default(false)
-  staff         Boolean  @default(false)
-  artist        Boolean  @default(false)
+  id            String    @id @unique
   flags         String[]
   access_token  String
   refresh_token String
   token         String
-  bio           String   @default("im new to dis")
-  public        Boolean  @default(true)
-  finished      Boolean  @default(false)
-  shadowed      Boolean  @default(false)
-  color         String   @default("#EB459E")
-  state         Json?
+  public        Boolean   @default(true)
+  finished      Boolean   @default(false)
+  shadowed      Boolean   @default(false)
+  profile       Profile[]
+  extra         Json      @default("{}")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Profile {
+  id          String    @id @unique
+  user        User      @relation(fields: [id], references: [id])
+  pfp         String    @default("https://i.scdn.co/image/ab676161000051747baf6a3e4e70248079e48c5a")
+  name        String    @default("dummy_text")
+  username    String    @unique @default("dummy_username")
+  verified    Boolean   @default(false)
+  staff       Boolean   @default(false)
+  artist      Boolean   @default(false)
+  incomingReq Profile[] @relation("Req")
+  outgoingReq Profile[] @relation("Req")
+  friends     Profile[] @relation("FriendToFriend")
+  friendsOf   Profile[] @relation("FriendToFriend")
+  color       String    @default("#EB459E")
+  bio         String    @default("im new to dis")
+  state       Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

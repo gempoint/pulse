@@ -1,151 +1,75 @@
-import { StyleSheet, ActivityIndicator, Animated, RefreshControl, Image, Linking } from 'react-native';
-import { View, Button, H1, Text, Input, ScrollView, useTheme, YStack, XStack } from 'tamagui';
+import { StyleSheet, ActivityIndicator, Animated, RefreshControl, Image, Linking, AppState } from 'react-native';
+import { View, Button, H1, Text, Input, ScrollView, useTheme, YStack, XStack, Spinner, Separator } from 'tamagui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
-import { fetchFriends } from '@/etc/api';
+import { fetchFriends, searchUsers, sendFriReq, User } from '@/etc/api';
 import { Search, Music2, Instagram } from '@tamagui/lucide-icons';
 import { getColors } from 'react-native-image-colors';
-//import AppLink from 'react-native-app-link';
-import Scrolling from '@/components/Scrolling'
 import ScrollingText from '@/components/ScrollingText';
 import { router } from 'expo-router';
-import InstagramGradientButton from '@/components/InstagramButton';
+import { useIsFocused } from '@react-navigation/native';
 import ShareToInstagramButton from '@/components/ShareToInstagramButton';
-// Separate types into their own file
-type State = {
-  id: string;
-  name: string;
-  artist: string;
-  img: string;
-  color?: string;
-  uri: string;
-  url: string;
-};
-
-type User = {
-  id: string;
-  verified: boolean;
-  staff: boolean;
-  artist: boolean;
-  bio: string;
-  color: string;
-  name: string;
-  username: string;
-  pfp: string;
-  state?: State;
-};
+import Spin from '@/components/Spin';
+import UserItem from '@/components/UserItem';
+import { getColorFromImage } from '@/components/etc';
 
 const Invite = () => {
   return (
     <View style={styles.loadingContainer} space="$2">
       <Text>No friends found</Text>
       <ShareToInstagramButton />
-      {/*<Button icon={<Instagram onPress={() => console.log('hi')} />}>Wanna try adding some? ;)</Button>*/}
-      {/*<InstagramGradientButton adjustsFontSizeToFit>
-        Wanna try adding some? ;)
-      </InstagramGradientButton>*/}
     </View>
   )
 }
 
-// Separate color utility
-const getColorFromImage = async (imageUrl: string): Promise<string> => {
-  try {
-    const colors = await getColors(imageUrl, {
-      fallback: '#6366f1',
-      cache: true,
-      key: imageUrl,
-    });
-    return colors.platform === 'ios' ? colors.primary : colors.dominant;
-  } catch (error) {
-    console.error('Error extracting color:', error);
-    return '#6366f1'; // fallback color
+//const SearchResults = memo(({ name } : { name: string } => {
+
+const SearchResults = memo(({ name }: { name: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState<Omit<User[], "state"> | null>(null);
+
+  const fetch = useMemo(() => {
+    setIsLoading(true)
+    return searchUsers(name)
+  }, [name])
+
+  useEffect(() => {
+    fetch.then((res) => {
+      setIsLoading(false)
+      setUserData(res.msg)
+    })
+  }, [fetch]) // Added dependency array
+
+  if (isLoading) {
+    return (
+      <View style={styles.searchResultsContainer}>
+        <Spin />
+      </View>
+    )
   }
-};
+
+  return (
+    <View style={styles.searchResultsContainer}>
+      <Text>Users you might know:</Text>
+      <Separator marginVertical={15} />
+      <View minWidth="100%">
+        {userData && userData.length > 0 ? (
+          userData.map(user => (
+            <UserItem key={user.id} friend={user} unadded />
+          ))
+        ) : (
+          <Text>No users found matching your search</Text>
+        )}
+      </View>
+    </View>
+  )
+})
+
+// Separate color utility
+
+
 
 // Separate Friend Item component
-const FriendItem = memo(({ friend }: { friend: User }) => (
-  <XStack
-    key={friend.id}
-    alignItems="center"
-    justifyContent="space-between"
-    paddingVertical="$3"
-    paddingHorizontal="$4"
-    pressStyle={{ opacity: 0.7 }}
-    onPress={() => {
-      router.push('')
-    }}
-  >
-    <XStack alignItems="center" space="$3">
-      <Image
-        source={{ uri: friend.pfp }}
-        style={styles.avatar}
-      />
-      <YStack>
-        <Text fontWeight="bold" color={friend.color}>{friend.name}</Text>
-        <Text color="$gray11">@{friend.username}</Text>
-      </YStack>
-    </XStack>
-
-    {friend.state && (
-      <XStack
-        backgroundColor={friend.state.color}
-        opacity={0.7}
-        borderRadius="$4"
-        paddingHorizontal="$3"
-        paddingVertical="$2"
-        space="$2"
-        alignItems="center"
-        animation="bouncy"
-        onPress={async () => {
-          if (await Linking.canOpenURL(friend.state?.uri!)) {
-            Linking.openURL(friend.state?.uri!)
-          } else {
-            Linking.openURL(friend.state?.url!)
-          }
-        }}
-      >
-        <Image
-          source={{ uri: friend.state.img }}
-          style={styles.songArt}
-        />
-        <YStack maxWidth={"$space.15"}>
-          {/*<Scrolling style={{
-            //width: '100%',
-          }} delay={1000} endPaddingWidth={20}>
-            <Text>{friend.state.name}</Text>
-          </Scrolling>*/}
-          <ScrollingText
-            //scrollSpeed={500}
-            loop
-            duration={7000}
-            bounce={true}
-            animationType={'bounce'}
-            bounceSpeed={300}
-            marqueeDelay={1000}
-            style={{
-              color: 'white'
-            }}
-          >{friend.state.name}</ScrollingText>
-          <ScrollingText
-            //scrollSpeed={500}
-            loop
-            duration={8000}
-            bounce={true}
-            animationType={'bounce'}
-            bounceSpeed={300}
-            marqueeDelay={1000}
-            style={{
-              color: 'white'
-            }}
-          >{friend.state.artist}</ScrollingText>
-        </YStack>
-        <Music2 size={16} color="white" />
-      </XStack>
-    )}
-  </XStack>
-));
-
 export default function FriendsTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -153,10 +77,19 @@ export default function FriendsTab() {
   const [friendsData, setFriendsData] = useState<User[] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const theme = useTheme();
+  const isFocused = useIsFocused();
+
+  // Add refs
+  const isMounted = useRef(true);
+  const autoRefreshTimeout = useRef<NodeJS.Timeout>();
 
   const fetchProfileData = useCallback(async (isRefreshing = false) => {
+    if (!isMounted.current) return;
+
     try {
-      if (!isRefreshing) setIsLoading(true);
+      if (!isRefreshing) {
+        setIsLoading(true);
+      }
 
       const response = await fetchFriends();
       const friendsWithColors = await Promise.all(
@@ -172,14 +105,20 @@ export default function FriendsTab() {
         })
       );
 
-      setFriendsData(friendsWithColors);
-      setError(null);
+      if (isMounted.current) {
+        setFriendsData(friendsWithColors);
+        setError(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
-      setFriendsData(null);
+      if (isMounted.current) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
+        setFriendsData(null);
+      }
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
     }
   }, []);
 
@@ -188,8 +127,48 @@ export default function FriendsTab() {
     fetchProfileData(true);
   }, [fetchProfileData]);
 
+  // Handle focus changes and start/stop refresh
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined;
+
+    const startAutoRefresh = () => {
+      // Clear any existing interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+
+      // Start new interval
+      intervalId = setInterval(() => {
+        if (isMounted.current) {
+          fetchProfileData(true);
+        }
+      }, 30000);
+    };
+
+    // If screen is focused, start auto-refresh
+    if (isFocused) {
+      fetchProfileData(true);
+      startAutoRefresh();
+    }
+
+    // Cleanup function
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isFocused, fetchProfileData]);
+
+  // Initial data fetch and cleanup
   useEffect(() => {
     fetchProfileData();
+
+    return () => {
+      isMounted.current = false;
+      if (autoRefreshTimeout.current) {
+        clearInterval(autoRefreshTimeout.current);
+      }
+    };
   }, [fetchProfileData]);
 
   const filteredFriends = useMemo(() =>
@@ -242,6 +221,8 @@ export default function FriendsTab() {
             backgroundColor="transparent"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            cursorColor={theme.accentColor.val}
+            enterKeyHint='search'
           />
         </XStack>
 
@@ -258,11 +239,12 @@ export default function FriendsTab() {
           >
             {filteredFriends && filteredFriends.length > 0 ? (
               filteredFriends.map(friend => (
-                <FriendItem key={friend.id} friend={friend} />
+                <UserItem key={friend.id} friend={friend} unadded={false} />
               ))
             ) : (
               <View style={styles.container}>
-                {searchQuery ? (<Text>No friends found matching your search</Text>) : (<Invite />)}
+                <Invite />
+                {searchQuery && <SearchResults name={searchQuery} />}
               </View>
             )}
           </ScrollView>
@@ -322,5 +304,10 @@ const styles = StyleSheet.create({
   },
   container2: {
     overflow: 'hidden',
-  }
+  },
+  searchResultsContainer: {
+    width: '100%',
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
 });

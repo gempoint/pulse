@@ -6,7 +6,6 @@ import { sentry } from "@hono/sentry";
 import radar from "./radar";
 import user from "./user";
 import auth from "./auth";
-import idk from "./idk";
 import { showRoutes } from "hono/dev";
 
 const app = new Hono();
@@ -17,7 +16,9 @@ app.use("*", sentry());
 app.onError((err, c) => {
   console.error(err);
   return c.json({
-    msg: err.message,
+    msg: {
+      'err': err.message
+    },
     ok: false,
   });
 });
@@ -29,8 +30,6 @@ app.route("/user", user);
 app.route("/", auth);
 
 app.route("/", radar);
-
-app.route("/", idk);
 
 //showRoutes(app, {
 //  verbose: true,

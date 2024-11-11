@@ -1,10 +1,17 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import type { Context } from 'hono';
-import { SpotifyApi, type Track } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi, type AccessToken, type Track } from '@spotify/web-api-ts-sdk';
 import type { RecommendedSong, Song, User } from 'compute';
 import _ from 'lodash';
 import type { PlaylistViewerProps } from 'etc';
+import os from 'os';
+import { bearerAuth } from 'hono/bearer-auth'
+import safeAwait from 'safe-await';
+import { verify } from 'hono/jwt';
 
+import { createMiddleware } from 'hono/factory'
+import prisma from './prisma';
+import type { Prisma } from '@prisma/client';
 export const a = axios.create({
   headers: {
     'User-Agent': 'Pulse-API (idk)'
@@ -182,6 +189,127 @@ export const flatten = (obj) => {
 }
 
 
+export const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (const interfaceName in interfaces) {
+    const addresses = interfaces[interfaceName];
+    for (const address of addresses!) {
+      if (address.family === 'IPv4' && !address.internal) {
+        return address.address;
+      }
+    }
+  }
+};
+
+//export const auth = (optional: boolean) => bearerAuth({
+//  verifyToken: async (token, c) => {
+//    const [err, dat] = await safeAwait(verify(token, SECRET as unknown as string))
+//    if (err) {
+//      //return false
+//      return ba(c, 'bad token')
+
+//    }
+//    if (dat) {
+//      return true
+//    }
+//  },
+//  noAuthenticationHeaderMessage: async (c) => {
+//    if (optional) {
+//      return
+//    } else {
+//      return ba(c, "no auth header provided")
+//    }
+//  }
+//})
+
+//export const auth = (idk: unknown) => console.log(idk)
+
+
+export const auth = (optional: boolean = false) => createMiddleware<{
+  Variables: {
+    id: string
+  }
+}>(async (c, next) => {
+  //console.log(`[${c.req.method}] ${c.req.url}`)
+  //await next()
+  let auth = c.req.header('Authorization')
+  if (!auth && !optional) {
+    return ba(c, 'no auth token provided')
+  }
+
+  // idk what i was thinking here
+  //if (!auth?.startsWith('Bearer ')) {
+
+  //}
+
+  let token = auth!.replace('Bearer ', '')
+
+  const [err, dat] = await safeAwait(verify(token, SECRET))
+
+  if (err) {
+    return ba(c, "bad auth token")
+  }
+
+  if (dat) {
+    // might be a good idea? idk
+    //let check = await prisma.user.findUnique({
+    //  where: {
+    //    id: dat!.id as unknown as string
+    //  }
+    //})
+    //if (check === null) {
+    //  return ba(c, "user not found")
+    //}
+    c.set('id', dat!.id)
+    return await next()
+  }
+})
+
+
+export const freshSDK = async (user: Prisma.UserSelect) => {
+  let [e_, keys] = await safeAwait(
+    a.post<AccessToken>(
+      "https://accounts.spotify.com/api/token",
+      {
+        grant_type: "refresh_token",
+        refresh_token: user?.refresh_token,
+        //client_id: Bun.env.SPOTIFY_CLIENT_ID
+      },
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: AUTH_HEADER,
+        },
+      },
+    ),
+  );
+  if (e_) {
+    const errors = e_ as Error | AxiosError;
+    if (axios.isAxiosError(errors)) {
+      if (errors.response) {
+        console.log("get token errored out");
+        console.error(errors.response.data);
+      }
+    }
+    return
+  }
+
+  let { data } = keys!;
+  return SpotifyApi.withAccessToken(
+    SPOTIFY_CLIENT_ID!,
+    {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      refresh_token: user?.refresh_token!,
+      token_type: "Bearer",
+    },
+    {
+      // https://github.com/spotify/spotify-web-api-ts-sdk/issues/127 ¯\_(ツ)_/¯
+      deserializer: new MyDeserializer(),
+    },
+  );
+
+}
 export class MyDeserializer {
   async deserialize(e: any) {
     const t = await e.text();
@@ -201,6 +329,7 @@ export class MyDeserializer {
     }
   }
 }
+
 
 declare module "bun" {
   interface Env {

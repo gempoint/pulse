@@ -21,18 +21,29 @@
     "init:dev-server": "cd packages/server && bunx prisma generate && bun . --hot"
   },
   "trustedDependencies": [
+    "@parcel/watcher",
     "@prisma/client",
     "@prisma/engines",
     "@sentry/cli",
     "@swc/core",
+    "canvas",
     "core-js",
     "esbuild",
     "linux-perf",
+    "microservices",
     "pngquant-bin",
     "prisma",
+    "puppeteer",
     "quick-lint-js",
+    "react-native-share",
     "sharp",
     "vue-demi"
   ],
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tamagui": "^1.111.1",
+    "@types/react-dom": "~18.2.0"
+  },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

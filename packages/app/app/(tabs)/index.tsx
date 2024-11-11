@@ -56,7 +56,8 @@ export default function Tab() {
       if (!test.granted) {
         await Location.requestForegroundPermissionsAsync();
       }
-      let loc = await Location.getCurrentPositionAsync({});
+      let loc
+      loc = await Location.getLastKnownPositionAsync({});
       if (!loc) {
         return;
       }
@@ -73,7 +74,7 @@ export default function Tab() {
         return;
       }
 
-      console.log(data);
+      console.log('d', data);
       if (!data?.ok) {
         switch (data?.msg.type) {
           case "NO_PLAYER":
@@ -92,6 +93,7 @@ export default function Tab() {
             break;
         }
       } else {
+        console.log(data.msg)
         router.push({
           pathname: '/selector',
           params: { data: JSON.stringify(data.msg) }
