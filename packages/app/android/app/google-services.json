@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "168020627105",
+    "project_id": "pulse-c2f36",
+    "storage_bucket": "pulse-c2f36.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:168020627105:android:4c6b6c5cf232edfe27aae0",
+        "android_client_info": {
+          "package_name": "com.gempoint.pulse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtdo25nsvl67_7IXrYcu_30wUDGHYJG80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
