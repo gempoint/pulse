@@ -1,6 +1,6 @@
 //import { findTopMatches } from './index.node';
 const napi = require('./index.node')
-
+console.log(napi)
 if (napi === undefined) {
   throw new Error('cargo didnt build!')
 }

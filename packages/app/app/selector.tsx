@@ -7,7 +7,6 @@ import {
   Text,
   H3,
   Separator,
-  Theme,
   Button,
   AnimatePresence,
   View
@@ -132,27 +131,29 @@ export default function PlaylistViewer() {
             <YStack padding="$4" space="$6">
               {playlistData.info.map((playlist) => (
                 <YStack key={playlist.id} space="$4">
-                  <XStack space="$4" alignItems="center">
-                    <Image
-                      source={{
-                        uri: playlist.img || 'https://via.placeholder.com/60'
-                      }}
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: 30,
-                        backgroundColor: '#f4f4f4'
-                      }}
-                    />
-                    <YStack>
-                      <H3
-                        fontWeight="700"
-                        fontSize={24}
-                      >
-                        {playlist.name}
-                      </H3>
-                    </YStack>
-                  </XStack>
+                  <Pressable onPressOut={() => router.push(`/user/${playlist.id}/info`)}>
+                    <XStack space="$4" alignItems="center">
+                      <Image
+                        source={{
+                          uri: playlist.img || 'https://via.placeholder.com/60'
+                        }}
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 30,
+                          backgroundColor: '#f4f4f4'
+                        }}
+                      />
+                      <YStack>
+                        <H3
+                          fontWeight="700"
+                          fontSize={24}
+                        >
+                          {playlist.name}
+                        </H3>
+                      </YStack>
+                    </XStack>
+                  </Pressable>
 
                   <YStack space="$0">
                     {playlist.tracks.map((track, index) => {

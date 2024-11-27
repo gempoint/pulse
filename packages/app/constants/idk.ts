@@ -33,3 +33,5 @@ export const apiEndpoint = () => {
 }
 //export const isDev = packagerOpts && packagerOpts.dev -- idk wtf this is
 export const isDev = __DEV__
+
+export const RADAR = "radar_refresh"

@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import type { Context } from 'hono';
+import type { Context, ValidationTargets } from 'hono';
 import { SpotifyApi, type AccessToken, type Track } from '@spotify/web-api-ts-sdk';
 import type { RecommendedSong, Song, User } from 'compute';
 import _ from 'lodash';
@@ -12,6 +12,7 @@ import { verify } from 'hono/jwt';
 import { createMiddleware } from 'hono/factory'
 import prisma from './prisma';
 import type { Prisma } from '@prisma/client';
+import { zValidator } from '@hono/zod-validator';
 export const a = axios.create({
   headers: {
     'User-Agent': 'Pulse-API (idk)'
@@ -100,18 +101,19 @@ export const userConverter = async (id: string, tracks: Track[]): Promise<User> 
   }
 }
 
-export const arrToString = (arr: string[]) => {
-  if (arr.length === 0) {
-    return "";
-  } else if (arr.length === 1) {
-    return arr[0];
-  } else if (arr.length === 2) {
-    return arr.join(" & ");
-  } else {
-    return arr.slice(0, -1).join(", ") + " & " + arr[arr.length - 1];
-  }
-}
+//export const arrToString = (arr: string[]) => {
+//  if (arr.length === 0) {
+//    return "";
+//  } else if (arr.length === 1) {
+//    return arr[0];
+//  } else if (arr.length === 2) {
+//    return arr.join(" & ");
+//  } else {
+//    return arr.slice(0, -1).join(", ") + " & " + arr[arr.length - 1];
+//  }
+//}
 
+export const arrToString = (arr: string[]) => arr.length > 0 ? arr.join(", ") : arr[0]
 export const playlistOut = async (x: RecommendedSong[]): Promise<PlaylistViewerProps> => {
   let i: PlaylistViewerProps = {}
   let r: Record<string, RecommendedSong[]> = {}
@@ -155,6 +157,33 @@ export const playlistOut = async (x: RecommendedSong[]): Promise<PlaylistViewerP
       tracks: t_
     })
   }
+
+  let tracks: Map<string, number> = new Map()
+
+
+  sd.forEach(async t => {
+    t.tracks.forEach(track => {
+      if (tracks.has(track.id)) {
+        tracks.set(track.id, tracks.get(track.id)! + 1)
+      } else {
+        tracks.set(track.id, 1)
+      }
+    })
+  })
+
+  //await prisma.stat.upsert({
+  //  where: {
+  //    type_special: {
+  //      type: 'View',
+  //      special: 'global'
+  //    }
+  //  },
+  //  create: Object.fromEntries(tracks),
+  //  update: {
+  //    ...Object.fromEntries(tracks),
+  //  }
+  //})
+
   return {
     data: {
       info: sd,
@@ -308,8 +337,15 @@ export const freshSDK = async (user: Prisma.UserSelect) => {
       deserializer: new MyDeserializer(),
     },
   );
-
 }
+
+export const validate = (where: keyof ValidationTargets, schema: ZodType<any, ZodTypeDef, any>) => zValidator(where, schema, (result, c) => {
+  if (!result.success) {
+    return ba(c, {
+      type: "INVALID_DATA"
+    })
+  }
+})
 export class MyDeserializer {
   async deserialize(e: any) {
     const t = await e.text();
@@ -336,5 +372,6 @@ declare module "bun" {
     SPOTIFY_CLIENT_ID: string
     SPOTIFY_CLIENT_SECRET: string
     SECRET: string
+    EXPO_TOKEN: string
   }
 }

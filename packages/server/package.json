@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "./src/index.ts"
+    "start:dev": "bun run --hot --smol ./src/index.ts"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.42",
@@ -29,6 +29,7 @@
     "bluebird": "^3.7.2",
     "canvas": "^3.0.0-rc2",
     "drizzle-orm": "^0.33.0",
+    "expo-server-sdk": "^3.12.0",
     "fast-average-color-node": "^3.1.0",
     "hono": "^4.6.1",
     "keyv": "^5.0.1",

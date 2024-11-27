@@ -1,14 +1,12 @@
 import { View, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import { Button, Text } from 'tamagui';
 import * as Location from 'expo-location';
-import axios from "axios";
-import { apiEndpoint } from '@/constants/idk';
-import * as SecureStore from 'expo-secure-store';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useToastController } from '@tamagui/toast';
 import safeAwait from 'safe-await';
 import { router } from 'expo-router';
 import { radar } from '@/etc/api';
+import RadarAnimation from '@/components/RadarAnimation';
 
 export default function Tab() {
   const toastController = useToastController();
@@ -132,6 +130,7 @@ export default function Tab() {
 
   return (
     <View style={styles.container}>
+      <RadarAnimation />
       <AnimatedButton onPress={apiRadar}>
         {isLoading ? (
           <View style={styles.buttonContent}>

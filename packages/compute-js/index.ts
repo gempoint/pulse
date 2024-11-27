@@ -17,10 +17,14 @@ export interface RecommendedSong extends Song {
 }
 
 export function getRecommendations(
-  baseUser: User,
-  otherUsers: User[],
+  baseUser: User | string,
+  otherUsers: User[] | string,
   limit: number
 ): RecommendedSong[] {
+  console.log('s', typeof baseUser)
+  typeof baseUser === 'string' ? baseUser = JSON.parse(baseUser) : baseUser;
+  typeof otherUsers === 'string' ? otherUsers = JSON.parse(otherUsers) : otherUsers;
+  console.log(baseUser, otherUsers)
   // Calculate average preferences for base user
   const basePreferences = baseUser.songs.reduce(
     (acc, song) => ({

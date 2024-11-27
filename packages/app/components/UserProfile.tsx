@@ -1,140 +1,475 @@
-import React from 'react';
-import { View, Image, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from "react";
+import { router } from "expo-router";
+import { Linking, Pressable } from "react-native";
+import {
+  Button,
+  H3,
+  Image,
+  ScrollView,
+  styled,
+  Text,
+  View,
+  XStack,
+  YStack,
+} from "tamagui";
+import { LinearGradient } from "@tamagui/linear-gradient";
+import {
+  Check,
+  Instagram,
+  Music,
+  Music2,
+  Settings,
+  Star,
+} from "@tamagui/lucide-icons";
+import { getColors } from "react-native-image-colors";
 
-interface User {
-  id: string;
-  verified: boolean;
-  staff: boolean;
-  artist: boolean;
-  pfp: string;
-  name: string;
-}
+import ScrollingText from "@/components/ScrollingText";
+import LoadingScreen from "@/components/LoadingScreen";
+import { fetchUserStats, StatInfo, userFetch } from "@/etc/api";
 
-interface UserProfileProps {
-  user: User;
-  onPress?: () => void;
-}
+// Styled Components
+const StyledImage = styled(Image, {
+  width: "$6",
+  height: "$6",
+  borderRadius: "$4",
+});
 
-const UserProfile: React.FC<UserProfileProps> = ({ user, onPress }) => {
-  const renderBadges = () => {
-    const badges = [];
-    if (user.verified) badges.push('✓');
-    if (user.staff) badges.push('👔');
-    if (user.artist) badges.push('🎨');
+const ScrollContainer = styled(View, {
+  position: "relative",
+  width: "100%",
+});
 
-    return badges.map((badge, index) => (
-      <Text key={index} style={styles.badge}>
-        {badge}
-      </Text>
-    ));
-  };
+const ShadowGradient = styled(LinearGradient, {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  width: 20,
+  zIndex: 1,
+  borderRadius: "$2",
+});
 
-  return (
-    <Pressable onPress={onPress} style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{ uri: user.pfp }}
-          style={styles.profileImage}
-        />
-        <View style={styles.nameContainer}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name}>{user.name}</Text>
-            <View style={styles.badgeContainer}>
-              {renderBadges()}
-            </View>
-          </View>
-          <Text style={styles.userId}>ID: {user.id}</Text>
-        </View>
-      </View>
+const ArtistCard = styled(View, {
+  maxWidth: "100%",
+  borderRadius: "$4",
+  padding: "$2",
+  marginHorizontal: "$1",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+});
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Status</Text>
-          <Text style={styles.statValue}>
-            {user.verified ? 'Verified' : 'Unverified'}
-          </Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Role</Text>
-          <Text style={styles.statValue}>
-            {user.staff ? 'Staff' : user.artist ? 'Artist' : 'User'}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
+// Type Definitions
+type UserProfileProps =
+  | {
+      username?: string;
+      me: true;
+    }
+  | {
+      username: string;
+      me: boolean;
+    };
+
+// Utility Functions
+const getColorFromImage = async (imageUrl: string): Promise<string> => {
+  try {
+    const colors = await getColors(imageUrl, {
+      fallback: "#2089dc",
+      cache: true,
+      key: imageUrl,
+    });
+
+    if (colors.platform === "android") {
+      return colors.dominant || "#2089dc";
+    } else if (colors.platform === "ios") {
+      return colors.primary || "#2089dc";
+    }
+    return "#2089dc";
+  } catch (error) {
+    console.error("Error getting color:", error);
+    return "#2089dc";
+  }
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+// Badges Component
+const UserBadges: React.FC<{
+  verified?: boolean;
+  staff?: boolean;
+  artist?: boolean;
+}> = ({ verified, staff, artist }) => (
+  <XStack space="$1">
+    {verified && (
+      <XStack
+        backgroundColor="$blue8"
+        paddingHorizontal="$2"
+        paddingVertical="$1"
+        borderRadius="$4"
+        alignItems="center"
+        space="$1"
+      >
+        <Check size={12} color="white" />
+      </XStack>
+    )}
+
+    {staff && (
+      <XStack
+        backgroundColor="$yellow8"
+        paddingHorizontal="$2"
+        paddingVertical="$1"
+        borderRadius="$4"
+        alignItems="center"
+        space="$1"
+      >
+        <Star size={12} color="white" />
+      </XStack>
+    )}
+
+    {artist && (
+      <XStack
+        backgroundColor="$purple8"
+        paddingHorizontal="$2"
+        paddingVertical="$1"
+        borderRadius="$4"
+        alignItems="center"
+        space="$1"
+      >
+        <Music size={12} color="white" />
+      </XStack>
+    )}
+  </XStack>
+);
+
+// Artist/Song List Renderer
+const ArtistList: React.FC<{
+  artists: StatInfo[];
+  songs?: boolean;
+}> = ({ artists, songs }) => (
+  <ScrollContainer>
+    <>
+      <ShadowGradient
+        colors={["$background", "transparent"]}
+        start={[0, 0]}
+        end={[1, 0]}
+        style={{ left: 0 }}
+      />
+      <ShadowGradient
+        colors={["transparent", "$background"]}
+        start={[0, 0]}
+        end={[1, 0]}
+        style={{ right: 0 }}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 14,
+        }}
+      >
+        <XStack space="$.5">
+          {artists &&
+            artists.map((artist, index) => (
+              <Pressable
+                key={index}
+                onPress={async () => {
+                  const url = (await Linking.canOpenURL(artist.uri))
+                    ? artist.uri
+                    : artist.url;
+                  Linking.openURL(url);
+                }}
+              >
+                <ArtistCard>
+                  <YStack space="$1" alignItems="center">
+                    <Image
+                      source={{ uri: artist.image }}
+                      width={80}
+                      height={80}
+                      borderRadius={20}
+                    />
+                    <Text
+                      fontSize={songs ? 8 : "$2"}
+                      fontWeight="bold"
+                      textAlign="center"
+                      numberOfLines={1}
+                      paddingBlock="$2"
+                      textOverflow="ellipsis"
+                      ellipsizeMode="tail"
+                      width={100}
+                    >
+                      {artist.name}
+                    </Text>
+                  </YStack>
+                </ArtistCard>
+              </Pressable>
+            ))}
+        </XStack>
+      </ScrollView>
+    </>
+  </ScrollContainer>
+);
+
+// Current State / Now Playing Renderer
+const CurrentState: React.FC<{
+  state: any;
+  stateColor: string;
+}> = ({ state, stateColor }) => (
+  <View space="$3">
+    <H3>Currently Playing</H3>
+    <XStack
+      width="100%"
+      backgroundColor={stateColor}
+      opacity={0.9}
+      paddingHorizontal="$4"
+      paddingVertical="$4"
+      space="$4"
+      alignItems="center"
+      animation="bouncy"
+      borderRadius="$6"
+      onPress={async () => {
+        const url = (await Linking.canOpenURL(state?.uri!))
+          ? state?.uri!
+          : state?.url!;
+        Linking.openURL(url);
+      }}
+    >
+      <StyledImage source={{ uri: state.img }} />
+
+      <YStack flex={1} maxWidth="70%">
+        <ScrollingText
+          loop
+          duration={7000}
+          bounce={true}
+          animationType="bounce"
+          bounceSpeed={300}
+          marqueeDelay={1000}
+          style={{
+            color: "white",
+            fontSize: 16,
+            fontWeight: "bold",
+            marginBottom: 4,
+          }}
+        >
+          {state.name}
+        </ScrollingText>
+        <ScrollingText
+          loop
+          duration={8000}
+          bounce={true}
+          animationType="bounce"
+          bounceSpeed={300}
+          marqueeDelay={1000}
+          style={{
+            color: "white",
+            fontSize: 14,
+          }}
+        >
+          {state.artist}
+        </ScrollingText>
+      </YStack>
+
+      <Music2 size={24} color="white" />
+    </XStack>
+  </View>
+);
+
+// Profile Action Buttons Component
+const ProfileActionButtons: React.FC<{
+  me: boolean;
+  user: any;
+  isFriend: boolean;
+}> = ({ me, user, isFriend }) => (
+  <View paddingTop="$3">
+    <XStack gap="$2" flex={1} alignItems="center" alignContent="center">
+      {me && (
+        <>
+          <Button
+            size="$4"
+            backgroundColor={user.color}
+            width="50%"
+            onPressOut={() => router.push("/edit")}
+          >
+            Edit
+          </Button>
+          <Button
+            icon={<Instagram />}
+            size="$4"
+            width="33.3%"
+            backgroundColor="$d62976"
+          >
+            Share
+          </Button>
+          <Button
+            icon={<Settings />}
+            size="$4"
+            backgroundColor="$d62976"
+            onPressOut={() => router.push("/settings")}
+          />
+        </>
+      )}
+      {isFriend ? (
+        <Button
+          size="$4"
+          backgroundColor="$red10Light"
+          width="50%"
+          onPressOut={() => router.push("/")}
+        >
+          Remove
+        </Button>
+      ) : (
+        <>
+          <Button
+            size="$4"
+            backgroundColor="$green10Light"
+            width="50%"
+            onPressOut={() => router.push("/")}
+          >
+            Add
+          </Button>
+          <Button
+            size="$4"
+            backgroundColor="$red10Light"
+            width="50%"
+            onPressOut={() => router.push("/")}
+          >
+            Decline
+          </Button>
+        </>
+      )}
+    </XStack>
+  </View>
+);
+
+const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
+  if (me) {
+    username = "";
+  }
+  const [stateColor, setStateColor] = useState<string>("#2089dc");
+
+  // Fetch user data
+  const { data: userData, isLoading: userLoading } = userFetch(username, {
+    refreshInterval: 30000,
+    onSuccess: async (res) => {
+      if (res.msg.state) {
+        const color = await getColorFromImage(res.msg.state.img);
+        setStateColor(color);
+      }
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 16,
-  },
-  nameContainer: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  userId: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  badgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badge: {
-    fontSize: 16,
-    marginHorizontal: 2,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  statItem: {
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+  });
+
+  // Fetch stats data
+  const { data: statsData, isLoading: statsLoading } = fetchUserStats(
+    username,
+    {
+      onSuccess: () => {
+        // Optional success handling
+      },
+    },
+  );
+
+  // Show loading screen while data is being fetched
+  if (userLoading || statsLoading || !userData || !statsData) {
+    return <LoadingScreen />;
+  }
+
+  const user = userData.msg;
+  const stats = statsData;
+
+  return (
+    <ScrollView flex={1} backgroundColor="$background">
+      <YStack flex={1} backgroundColor="$background">
+        <LinearGradient
+          height="40%"
+          width="100%"
+          colors={
+            user.state
+              ? [
+                  `${user.color}90`,
+                  `${user.color}90`,
+                  `${stateColor}80`,
+                  "$background",
+                ]
+              : [`${user.color}90`, "$background"]
+          }
+          start={[0, 0]}
+          end={[0, 1]}
+        >
+          <View padding="$4" paddingTop="$11">
+            <XStack space="$4">
+              <Image
+                source={{ uri: user.pfp }}
+                width={120}
+                height={120}
+                borderRadius={20}
+              />
+
+              <YStack flex={1} justifyContent="center" space="$2">
+                <XStack alignItems="center" space="$2">
+                  <Text color="$color" fontSize="$6" fontWeight="bold">
+                    {user.name}
+                  </Text>
+
+                  <UserBadges
+                    verified={user.verified}
+                    staff={user.staff}
+                    artist={user.artist}
+                  />
+                </XStack>
+
+                <Text color="$gray11" fontSize="$4">
+                  @{user.username}
+                </Text>
+
+                <Text color="$color" fontSize="$3" numberOfLines={3}>
+                  {user.bio}
+                </Text>
+              </YStack>
+            </XStack>
+
+            <ProfileActionButtons
+              me={me}
+              user={user}
+              isFriend={user.isFriend}
+            />
+          </View>
+        </LinearGradient>
+
+        <YStack
+          flex={1}
+          padding="$4"
+          marginTop={user.state ? "$-11" : "$-5"}
+          space="$3"
+        >
+          {user.state && (
+            <CurrentState state={user.state} stateColor={stateColor} />
+          )}
+
+          {stats.ok ? (
+            <>
+              <YStack space="$2" marginBottom="$2">
+                <H3>Favorite Artists</H3>
+                <ArtistList artists={stats.msg.artists} />
+              </YStack>
+
+              <YStack space="$2" marginBottom="$2">
+                <H3>Favorite Songs</H3>
+                <ArtistList artists={stats.msg.songs} songs />
+              </YStack>
+            </>
+          ) : (
+            <YStack space="$2" marginBottom="$2" paddingTop="$20">
+              <Text>{stats.msg.type}</Text>
+            </YStack>
+          )}
+        </YStack>
+
+        <View alignItems="center" paddingBottom="$2">
+          <Text color="$gray10Light">
+            account created{" "}
+            {new Date(user.createdAt).toDateString().toLowerCase()}
+          </Text>
+        </View>
+      </YStack>
+    </ScrollView>
+  );
+};
 
 export default UserProfile;

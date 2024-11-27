@@ -1,8 +1,6 @@
-import { type User, getRecommendations } from '../compute-js/index';
+import { type User, getRecommendations } from './index';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { run, bench, boxplot } from 'mitata'
-import { findTopMatches as findTopMatchesR } from '../compute-rs';
-
 
 const path = './dat.json'
 

@@ -11,6 +11,9 @@ export default function Tab() {
       <Text color="$white05" paddingBottom="$3">Build {Application.nativeApplicationVersion}</Text>
       <Button alignSelf="center" backgroundColor={"$accentColor"} marginBottom="$3" color={"black"} onTouchEnd={() => router.push('/feedback')}>Feedback</Button>
       <Button alignSelf="center" backgroundColor={"#1DB954"} marginBottom="$3" onTouchEnd={() => signOut()}>Sign Out</Button>
+      <Button onTouchEnd={() => {
+        throw new Error("intentional crash")
+      }}>crash</Button>
     </View>
   );
 }

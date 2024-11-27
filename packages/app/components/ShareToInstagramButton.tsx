@@ -109,7 +109,9 @@ export default function Show() {
           appId: Constants.expoConfig?.extra!.FB_ID,
           stickerImage: `${pnData.msg.png}`,
           backgroundBottomColor: '#fff',
-          backgroundTopColor: user?.color
+          backgroundTopColor: user?.color,
+          linkUrl: "https://www.i0x0.wtf",
+          linkText: "test"
         });
         console.log(x);
       } else {

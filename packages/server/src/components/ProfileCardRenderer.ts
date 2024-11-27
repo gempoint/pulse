@@ -37,7 +37,7 @@ export default class ProfileCardRenderer {
     } : { r: 0, g: 0, b: 0 };
   }
 
-  async render(user: UserProfile): Promise<Buffer> {
+  async render(user: UserProfile): Promise<string> {
     // Draw glassmorphic border
     const rgb = this.hexToRgb(user.color);
     this.ctx.save();
@@ -106,25 +106,25 @@ export default class ProfileCardRenderer {
     }
     this.ctx.fillText(line, 300 - this.ctx.measureText(line).width / 2, y);
 
-    // Draw badges
-    let badgeX = 300 - 70;
-    if (user.staff) {
-      this.ctx.fillStyle = '#374151';
-      this.roundRect(badgeX, y + 20, 50, 28, 4);
-      this.ctx.fill();
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = '14px Inter';
-      this.ctx.fillText('STAFF', badgeX + 10, y + 38);
-      badgeX += 70;
-    }
-    if (user.artist) {
-      this.ctx.fillStyle = '#374151';
-      this.roundRect(badgeX, y + 20, 65, 28, 4);
-      this.ctx.fill();
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = '14px Inter';
-      this.ctx.fillText('ARTIST', badgeX + 10, y + 38);
-    }
+    //// Draw badges
+    //let badgeX = 300 - 70;
+    //if (user.staff) {
+    //  this.ctx.fillStyle = '#374151';
+    //  this.roundRect(badgeX, y + 20, 50, 28, 4);
+    //  this.ctx.fill();
+    //  this.ctx.fillStyle = 'white';
+    //  this.ctx.font = '14px Inter';
+    //  this.ctx.fillText('STAFF', badgeX + 10, y + 38);
+    //  badgeX += 70;
+    //}
+    //if (user.artist) {
+    //  this.ctx.fillStyle = '#374151';
+    //  this.roundRect(badgeX, y + 20, 65, 28, 4);
+    //  this.ctx.fill();
+    //  this.ctx.fillStyle = 'white';
+    //  this.ctx.font = '14px Inter';
+    //  this.ctx.fillText('ARTIST', badgeX + 10, y + 38);
+    //}
 
     //return this.canvas.toBuffer();
     return this.canvas.toDataURL()

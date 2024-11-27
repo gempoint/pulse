@@ -17,7 +17,7 @@ export default function UserLayout() {
             <ArrowLeft color="white" size={24} paddingRight="$5" />
           </Pressable>
         ),
-        presentation: 'transparentModal'
+        presentation: 'modal'
       }}
     />
   )

@@ -29,7 +29,7 @@ app.route("/user", user);
 
 app.route("/", auth);
 
-app.route("/", radar);
+app.route("/radar", radar);
 
 //showRoutes(app, {
 //  verbose: true,

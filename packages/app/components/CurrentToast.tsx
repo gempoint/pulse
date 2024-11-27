@@ -17,7 +17,7 @@ export interface CustomToastData {
 
 const size = Dimensions.get('window')
 
-export default () => {
+export default function TToast() {
   const currentToast = useToastState()
   const { left, top, right } = useSafeAreaInsets()
 

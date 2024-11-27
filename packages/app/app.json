@@ -33,6 +33,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#1f1f1f"
       },
+      "googleServicesFile": "./etc/google-services.json",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
@@ -47,14 +48,6 @@
       "./androidModifier",
       "expo-router",
       "expo-font",
-      [
-        "@wwdrew/expo-spotify-sdk",
-        {
-          "clientID": "f61910ffe6754c74825ec6dd21d7bcb0",
-          "scheme": "com.gempoint.pulse",
-          "host": "auth"
-        }
-      ],
       "expo-secure-store",
       [
         "expo-location",

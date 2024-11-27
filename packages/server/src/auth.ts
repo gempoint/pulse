@@ -91,6 +91,7 @@ app.get('/callback', async (c) => {
         access_token: res?.data.access_token as string,
         refresh_token: res?.data.refresh_token as string,
         token: "",
+        finished: false,
         profile: {
           create: {
             color,
@@ -111,15 +112,15 @@ app.get('/callback', async (c) => {
       }
     })
   }
-
+  console.log("pos", pos)
   let jwt = await sign({
     id: spotifyId
   }, SECRET as unknown as string)
 
-  if (!pos.finished) {
-    return c.redirect(`pulse://onboard?code=${jwt}`)
-  } else {
+  if (pos.finished) {
     return c.redirect(`pulse://auth?code=${jwt}`)
+  } else {
+    return c.redirect(`pulse://onboard?code=${jwt}`)
   }
 })
 
