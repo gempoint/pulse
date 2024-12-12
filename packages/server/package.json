@@ -1,43 +1,41 @@
 {
-  "name": "server",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "start:dev": "bun run --hot --smol ./src/index.ts"
-  },
-  "devDependencies": {
-    "@types/bluebird": "^3.5.42",
-    "@types/bun": "latest",
-    "@types/lodash": "^4.17.12",
-    "@types/qs": "^6.9.16",
-    "@types/react-dom": "~18.2.0",
-    "@types/sharp": "^0.32.0",
-    "drizzle-prisma-generator": "^0.1.7",
-    "prisma": "^5.19.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@hono/sentry": "^1.2.0",
-    "@hono/zod-validator": "^0.2.2",
-    "@keyv/redis": "^3.0.1",
-    "@prisma/client": "^5.19.1",
-    "@sentry/bun": "^8.32.0",
-    "@spotify/web-api-ts-sdk": "^1.2.0",
-    "axios": "^1.7.7",
-    "bluebird": "^3.7.2",
-    "canvas": "^3.0.0-rc2",
-    "drizzle-orm": "^0.33.0",
-    "expo-server-sdk": "^3.12.0",
-    "fast-average-color-node": "^3.1.0",
-    "hono": "^4.6.1",
-    "keyv": "^5.0.1",
-    "ky": "^1.7.2",
-    "lodash": "^4.17.21",
-    "qs": "^6.13.0",
-    "redis": "^4.7.0",
-    "safe-await": "^2.0.0",
-    "zod": "^3.23.8"
-  }
+	"name": "server",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"start:dev": "bun run --watch --smol ./src/index.ts",
+		"gen": "npx prisma generate"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/lodash": "^4.17.12",
+		"@types/qs": "^6.9.16",
+		"@types/react-dom": "~18.2.0",
+		"drizzle-prisma-generator": "^0.1.7",
+		"prisma": "^5.19.1",
+		"prisma-erd-generator": "^1.11.2"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@hono/sentry": "^1.2.0",
+		"@hono/zod-validator": "^0.2.2",
+		"@prisma/client": "^5.19.1",
+		"@sentry/bun": "^8.32.0",
+		"@spotify/web-api-ts-sdk": "^1.2.0",
+		"@tamagui/font-inter": "^1.119.3",
+		"axios": "^1.7.7",
+		"canvas": "^3.0.0-rc2",
+		"drizzle-orm": "^0.37.0",
+		"expo-server-sdk": "^3.12.0",
+		"fast-average-color-node": "^3.1.0",
+		"file-type": "^19.6.0",
+		"hono": "^4.6.1",
+		"lodash": "^4.17.21",
+		"qs": "^6.13.0",
+		"redis": "^4.7.0",
+		"safe-await": "^2.0.0",
+		"zod": "^3.23.8"
+	}
 }

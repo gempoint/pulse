@@ -1,17 +1,13 @@
-import { StyleSheet, ActivityIndicator, Animated, RefreshControl, Image, Linking, AppState } from 'react-native';
-import { View, Button, H1, Text, Input, ScrollView, useTheme, YStack, XStack, Spinner, Separator } from 'tamagui';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
-import { fetchFriends, searchUsers, sendFriReq, User } from '@/etc/api';
-import { Search, Music2, Instagram } from '@tamagui/lucide-icons';
-import { getColors } from 'react-native-image-colors';
-import ScrollingText from '@/components/ScrollingText';
-import { router } from 'expo-router';
-import { useIsFocused } from '@react-navigation/native';
-import ShareToInstagramButton from '@/components/ShareToInstagramButton';
-import Spin from '@/components/Spin';
+import { Search } from "@tamagui/lucide-icons";
+import { memo, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, SafeAreaView, StyleSheet } from "react-native";
+import { H1, Input, View, XStack, YStack, useTheme, Button, Text, ScrollView, Separator } from "tamagui";
 import UserItem from '@/components/UserItem';
-import { getColorFromImage } from '@/components/etc';
+import ShareToInstagramButton from "@/components/ShareToInstagramButton";
+import { fetchFriends, searchUsers, sendFriReq, User } from '@/etc/api';
+import Spin from "@/components/Spin";
+import { getColorFromImage } from "@/components/etc";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const Invite = () => {
   return (
@@ -22,23 +18,9 @@ const Invite = () => {
   )
 }
 
-//const SearchResults = memo(({ name } : { name: string } => {
-
 const SearchResults = memo(({ name }: { name: string }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userData, setUserData] = useState<Omit<User[], "state"> | null>(null);
-
-  const fetch = useMemo(() => {
-    setIsLoading(true)
-    return searchUsers(name)
-  }, [name])
-
-  useEffect(() => {
-    fetch.then((res) => {
-      setIsLoading(false)
-      setUserData(res.msg)
-    })
-  }, [fetch]) // Added dependency array
+  //const [userData, setUserData] = useState<Omit<User[], "state"> | null>(null);
+  let { data, isLoading, error } = searchUsers(name, {})
 
   if (isLoading) {
     return (
@@ -48,161 +30,57 @@ const SearchResults = memo(({ name }: { name: string }) => {
     )
   }
 
+  if (error) {
+    <View>
+
+    </View>
+  }
+
   return (
     <View style={styles.searchResultsContainer}>
       <Text>Users you might know:</Text>
       <Separator marginVertical={15} />
       <View minWidth="100%">
-        {userData && userData.length > 0 ? (
-          userData.map(user => (
+        {data.ok && data?.msg.length > 0 ? (
+          data?.msg.map(user => (
             <UserItem key={user.id} friend={user} unadded />
           ))
         ) : (
-          <Text>No users found matching your search</Text>
+          <Text alignSelf="center">No users found matching your search</Text>
         )}
       </View>
     </View>
   )
 })
 
-// Separate color utility
-
-
-
-// Separate Friend Item component
 export default function FriendsTab() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [friendsData, setFriendsData] = useState<User[] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const theme = useTheme();
-  const isFocused = useIsFocused();
-
-  // Add refs
-  const isMounted = useRef(true);
-  const autoRefreshTimeout = useRef<NodeJS.Timeout>();
-
-  const fetchProfileData = useCallback(async (isRefreshing = false) => {
-    if (!isMounted.current) return;
-
-    try {
-      if (!isRefreshing) {
-        setIsLoading(true);
-      }
-
-      const response = await fetchFriends();
-      const friendsWithColors = await Promise.all(
-        response.msg.map(async (friend: User) => {
-          if (friend.state?.img) {
-            const color = await getColorFromImage(friend.state.img);
-            return {
-              ...friend,
-              state: { ...friend.state, color }
-            };
-          }
-          return friend;
-        })
-      );
-
-      if (isMounted.current) {
-        setFriendsData(friendsWithColors);
-        setError(null);
-      }
-    } catch (err) {
-      if (isMounted.current) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
-        setFriendsData(null);
-      }
-    } finally {
-      if (isMounted.current) {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    }
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setIsRefreshing(true);
-    fetchProfileData(true);
-  }, [fetchProfileData]);
-
-  // Handle focus changes and start/stop refresh
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined;
-
-    const startAutoRefresh = () => {
-      // Clear any existing interval
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-
-      // Start new interval
-      intervalId = setInterval(() => {
-        if (isMounted.current) {
-          fetchProfileData(true);
-        }
-      }, 30000);
-    };
-
-    // If screen is focused, start auto-refresh
-    if (isFocused) {
-      fetchProfileData(true);
-      startAutoRefresh();
-    }
-
-    // Cleanup function
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isFocused, fetchProfileData]);
-
-  // Initial data fetch and cleanup
-  useEffect(() => {
-    fetchProfileData();
-
-    return () => {
-      isMounted.current = false;
-      if (autoRefreshTimeout.current) {
-        clearInterval(autoRefreshTimeout.current);
-      }
-    };
-  }, [fetchProfileData]);
+  // const { friends, isLoading, error, mutate } = useFriends();
+  const { data, isLoading, error, mutate } = fetchFriends({})
 
   const filteredFriends = useMemo(() =>
-    friendsData?.filter(friend =>
+    data?.msg.filter(friend =>
       friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       friend.username.toLowerCase().includes(searchQuery.toLowerCase())
     ),
-    [friendsData, searchQuery]
+    [data, searchQuery]
   );
 
-  const refreshControl = useMemo(() => (
-    <RefreshControl
-      refreshing={isRefreshing}
-      onRefresh={onRefresh}
-      tintColor={theme.color.val as string}
-      colors={[theme.color.val as string]}
-      progressBackgroundColor={theme.background.val as string}
-    />
-  ), [isRefreshing, onRefresh, theme]);
+  if (isLoading) {
+    <LoadingScreen />
+  }
 
-  if (isLoading && !isRefreshing) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.color.val as string} />
-        </View>
-      </SafeAreaView>
-    );
+  if (error) {
+    <SafeAreaView>
+      <Text>err</Text>
+    </SafeAreaView>
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container} space="$4">
-        <H1 marginBottom="$2">Friends</H1>
+        <H1>Friends</H1>
 
         <XStack
           width="90%"
@@ -229,13 +107,12 @@ export default function FriendsTab() {
         {error ? (
           <YStack space="$3" alignItems="center">
             <Text color="$red10">{error}</Text>
-            <Button onPress={() => fetchProfileData()}>Retry</Button>
+            <Button onPress={() => mutate()}>Retry</Button>
           </YStack>
         ) : (
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            refreshControl={refreshControl}
           >
             {filteredFriends && filteredFriends.length > 0 ? (
               filteredFriends.map(friend => (
@@ -251,7 +128,7 @@ export default function FriendsTab() {
         )}
       </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -261,7 +138,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: 35,
   },
   loadingContainer: {
     flex: 1,

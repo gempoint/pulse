@@ -1,0 +1,1 @@
+ignores: ["prisma-erd-generator","drizzle-prisma-generator","@types/bun", "compute", "etc", "safe-await","burnt"]

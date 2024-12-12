@@ -26,12 +26,13 @@ import { getColors } from "react-native-image-colors";
 import ScrollingText from "@/components/ScrollingText";
 import LoadingScreen from "@/components/LoadingScreen";
 import { fetchUserStats, StatInfo, userFetch } from "@/etc/api";
+import tinycolor from "tinycolor2";
 
 // Styled Components
 const StyledImage = styled(Image, {
   width: "$6",
   height: "$6",
-  borderRadius: "$4",
+  borderRadius: "$2",
 });
 
 const ScrollContainer = styled(View, {
@@ -50,9 +51,9 @@ const ShadowGradient = styled(LinearGradient, {
 
 const ArtistCard = styled(View, {
   maxWidth: "100%",
-  borderRadius: "$4",
-  padding: "$2",
-  marginHorizontal: "$1",
+  borderRadius: "$.5",
+  padding: "$1.5",
+  marginHorizontal: "$.5",
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.05,
@@ -62,13 +63,13 @@ const ArtistCard = styled(View, {
 // Type Definitions
 type UserProfileProps =
   | {
-      username?: string;
-      me: true;
-    }
+    username?: string;
+    me: true;
+  }
   | {
-      username: string;
-      me: boolean;
-    };
+    username: string;
+    me: boolean;
+  };
 
 // Utility Functions
 const getColorFromImage = async (imageUrl: string): Promise<string> => {
@@ -146,23 +147,11 @@ const ArtistList: React.FC<{
 }> = ({ artists, songs }) => (
   <ScrollContainer>
     <>
-      <ShadowGradient
-        colors={["$background", "transparent"]}
-        start={[0, 0]}
-        end={[1, 0]}
-        style={{ left: 0 }}
-      />
-      <ShadowGradient
-        colors={["transparent", "$background"]}
-        start={[0, 0]}
-        end={[1, 0]}
-        style={{ right: 0 }}
-      />
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator
         contentContainerStyle={{
-          paddingHorizontal: 14,
+          // paddingHorizontal: 14,
         }}
       >
         <XStack space="$.5">
@@ -178,12 +167,12 @@ const ArtistList: React.FC<{
                 }}
               >
                 <ArtistCard>
-                  <YStack space="$1" alignItems="center">
+                  <YStack space="$.5" alignItems="center">
                     <Image
                       source={{ uri: artist.image }}
                       width={80}
                       height={80}
-                      borderRadius={20}
+                      borderRadius={10}
                     />
                     <Text
                       fontSize={songs ? 8 : "$2"}
@@ -228,6 +217,7 @@ const CurrentState: React.FC<{
         const url = (await Linking.canOpenURL(state?.uri!))
           ? state?.uri!
           : state?.url!;
+        console.log(url);
         Linking.openURL(url);
       }}
     >
@@ -274,17 +264,19 @@ const CurrentState: React.FC<{
 // Profile Action Buttons Component
 const ProfileActionButtons: React.FC<{
   me: boolean;
-  user: any;
+  user: User;
   isFriend: boolean;
 }> = ({ me, user, isFriend }) => (
   <View paddingTop="$3">
     <XStack gap="$2" flex={1} alignItems="center" alignContent="center">
-      {me && (
+      {me ? (
         <>
           <Button
             size="$4"
-            backgroundColor={user.color}
+            backgroundColor={tinycolor(user.color).darken(20).toHexString()}
             width="50%"
+
+            opacity={50}
             onPressOut={() => router.push("/edit")}
           >
             Edit
@@ -304,8 +296,7 @@ const ProfileActionButtons: React.FC<{
             onPressOut={() => router.push("/settings")}
           />
         </>
-      )}
-      {isFriend ? (
+      ) : isFriend ? (
         <Button
           size="$4"
           backgroundColor="$red10Light"
@@ -314,6 +305,11 @@ const ProfileActionButtons: React.FC<{
         >
           Remove
         </Button>
+      ) : user.isPending ? (
+        <>
+          <Button width="50%" size="$3" onPressOut={() => router.push("/")}>Remove Friend Request</Button>
+          <Button width="50%" size="$3">Remove Friend Request</Button>
+        </>
       ) : (
         <>
           <Button
@@ -343,11 +339,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
     username = "";
   }
   const [stateColor, setStateColor] = useState<string>("#2089dc");
+  const [shouldFetch, setShouldFetch] = useState<boolean>(false)
 
   // Fetch user data
-  const { data: userData, isLoading: userLoading } = userFetch(username, {
+  const { data: userData, isLoading: userLoading, error, mutate } = userFetch(username, {
     refreshInterval: 30000,
     onSuccess: async (res) => {
+      setShouldFetch(true)
+      console.log("dat", res);
       if (res.msg.state) {
         const color = await getColorFromImage(res.msg.state.img);
         setStateColor(color);
@@ -356,41 +355,47 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
   });
 
   // Fetch stats data
-  const { data: statsData, isLoading: statsLoading } = fetchUserStats(
-    username,
-    {
-      onSuccess: () => {
-        // Optional success handling
-      },
-    },
-  );
+  const { data: statsData, isLoading: statsLoading, error: statsError } = fetchUserStats(shouldFetch ? username! : undefined, {});
+
+  //if (error) {
+  //  return (
+  //    <View flex={1} alignContent="center" alignItems="center">
+
+  //    </View>
+  //  )
+  //}
 
   // Show loading screen while data is being fetched
   if (userLoading || statsLoading || !userData || !statsData) {
     return <LoadingScreen />;
   }
 
+
   const user = userData.msg;
   const stats = statsData;
 
+
   return (
-    <ScrollView flex={1} backgroundColor="$background">
-      <YStack flex={1} backgroundColor="$background">
+    <YStack flex={1} backgroundColor="$background">
+      <ScrollView flex={1} backgroundColor="$background">
         <LinearGradient
           height="40%"
           width="100%"
           colors={
             user.state
               ? [
-                  `${user.color}90`,
-                  `${user.color}90`,
-                  `${stateColor}80`,
-                  "$background",
-                ]
+                `${user.color}90`,
+                `${user.color}90`,
+                `${stateColor}80`,
+                "$background",
+              ]
               : [`${user.color}90`, "$background"]
           }
           start={[0, 0]}
           end={[0, 1]}
+          style={{
+            paddingTop: me ? "$3" : undefined,
+          }}
         >
           <View padding="$4" paddingTop="$11">
             <XStack space="$4">
@@ -435,7 +440,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
         <YStack
           flex={1}
           padding="$4"
-          marginTop={user.state ? "$-11" : "$-5"}
+          marginTop={user.state ? "$-10" : "$-5"}
           space="$3"
         >
           {user.state && (
@@ -460,6 +465,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
             </YStack>
           )}
         </YStack>
+        <Text>hello</Text>
 
         <View alignItems="center" paddingBottom="$2">
           <Text color="$gray10Light">
@@ -467,8 +473,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, me }) => {
             {new Date(user.createdAt).toDateString().toLowerCase()}
           </Text>
         </View>
-      </YStack>
-    </ScrollView>
+      </ScrollView>
+    </YStack>
   );
 };
 

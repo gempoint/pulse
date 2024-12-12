@@ -6,8 +6,12 @@
   ],
   "devDependencies": {
     "@types/bun": "latest",
+    "concurrently": "^9.1.0",
+    "eslint": "^8.52.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "if-env": "^1.0.4",
+    "prettier": "^3.1.0",
+    "prettier-eslint": "^16.1.2",
     "quick-lint-js": "^3.2.0"
   },
   "peerDependencies": {
@@ -19,7 +23,10 @@
     "docker:down": "docker-compose down",
     "lint": "node_modules/.bin/quick-lint-js packages/app/app/*/* && node_modules/.bin/quick-lint-js packages/server/src/**",
     "init:server": "cd packages/server && bunx prisma generate && bun .",
-    "init:dev-server": "cd packages/server && bunx prisma generate && bun . --hot"
+    "init:dev-server": "cd packages/server && bunx prisma generate && bun . --hot",
+    "scan:app": "cd packages/app && bunx depcheck",
+    "scan:server": "cd packages/server && bunx depcheck",
+    "scan": "concurrently -p '[{name}]' -c 'bgBlue.bold,bgMagenta.bold' -n 'app,server' 'bun scan:app' 'bun scan:server'"
   },
   "trustedDependencies": [
     "@parcel/watcher",

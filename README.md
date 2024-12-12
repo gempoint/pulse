@@ -29,7 +29,8 @@
 * for some reason it takes seconds to for like 5 users to analyse and return data even tho its written in rust (gotta improve that asap)
 * need to add social features
 * how tf does one improve api perfomance smh
-
+* db chart (for dummies) ![another show and tell](/docs/erd.svg)
+* 
 To install dependencies:
 
 ```bash

@@ -1,7 +1,5 @@
-import { SpotifyScope } from "@wwdrew/expo-spotify-sdk/build/ExpoSpotifySDK.types";
 import Constants from 'expo-constants'
-const { packagerOpts } = Constants
-export const scopes: SpotifyScope[] = [
+export const scopes: string[] = [
   "user-read-currently-playing", // get queue
   "user-top-read", // get top content
   "user-read-recently-played", // get recent
@@ -35,3 +33,5 @@ export const apiEndpoint = () => {
 export const isDev = __DEV__
 
 export const RADAR = "radar_refresh"
+
+export const SPOTIFY_GREEN = "#1ED760"

@@ -13,12 +13,16 @@ import * as Notifications from 'expo-notifications';
 import { startActivityAsync, ActivityAction } from 'expo-intent-launcher';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-
+import * as Location from 'expo-location';
 
 type ValidationStatus = 'off' | 'submitting' | 'submitted' | 'error';
 
 const validateUsername = (username: string): { isValid: boolean; message?: string } => {
   // Check length
+  if (username.length < 3) {
+    return { isValid: false, message: 'Username must be at least 3 characters' };
+
+  }
   if (username.length > 30) {
     return { isValid: false, message: 'Username must be 30 characters or less' };
   }
@@ -125,6 +129,17 @@ export default function Onboard() {
   }
 
   const ask = async () => {
+    //let loc = await Location.requestBackgroundPermissionsAsync()
+    let loc = await Location.requestForegroundPermissionsAsync()
+    if (loc.status !== "granted") {
+      if (Platform.OS === "android") {
+        startActivityAsync(ActivityAction.APP_NOTIFICATION_SETTINGS, {
+          extra: {
+            'android.provider.extra.APP_PACKAGE': Application.applicationId
+          }
+        })
+      } else { }
+    }
     const x = await Notifications.requestPermissionsAsync()
     console.log(x)
     if (x.status === 'denied') {
@@ -249,7 +264,6 @@ export default function Onboard() {
         <View style={[styles.container, styles.up]} paddingTop="$-3" space="$3">
           <View flexDirection="row" alignItems="center">
             <H3>finish creating your account</H3>
-            <ArrowDown />
           </View>
           <Image
             style={styles.rounded}
@@ -278,6 +292,7 @@ export default function Onboard() {
                   textAlign="center"
                   value={username}
                   onChangeText={handleUsernameChange}
+                  autoCapitalize="none"
                   borderColor={status === 'error' ? '$red10' : undefined}
                   maxLength={30} // Prevent typing more than 30 characters
                 />
@@ -315,7 +330,7 @@ export default function Onboard() {
           <Sheet.Handle />
 
           <XStack padding="$4" space="$4">
-            <H3>Enable Notificaions</H3>
+            <H3>Enable Notificaions & Locations</H3>
           </XStack>
 
           {/* Your sheet content goes here */}

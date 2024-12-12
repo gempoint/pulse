@@ -171,60 +171,95 @@ export default class TextMarquee extends PureComponent<TextTickerProps> {
     }, marqueeDelay);
   };
 
+  // causes crashes
+  // animateBounce = () => {
+  //   const {
+  //     duration,
+  //     marqueeDelay,
+  //     loop,
+  //     isInteraction,
+  //     useNativeDriver,
+  //     easing,
+  //     bounceSpeed,
+  //     bouncePadding,
+  //     bounceDelay,
+  //     isRTL,
+  //   } = this.props;
+  //   const rtl = isRTL ?? I18nManager.isRTL;
+  //   const bounceEndPadding = rtl ? bouncePadding?.left : bouncePadding?.right;
+  //   const bounceStartPadding = rtl ? bouncePadding?.right : bouncePadding?.left;
+  //   this.setTimeout(
+  //     () => {
+  //       Animated.sequence([
+  //         Animated.timing(this.animatedValue, {
+  //           toValue: rtl
+  //             ? this.distance + (bounceEndPadding ?? 10)
+  //             : -this.distance - (bounceEndPadding ?? 10),
+  //           duration: duration || this.distance * bounceSpeed,
+  //           easing: easing,
+  //           isInteraction: isInteraction,
+  //           useNativeDriver: useNativeDriver,
+  //         }),
+  //         Animated.timing(this.animatedValue, {
+  //           toValue: rtl
+  //             ? -(bounceStartPadding ?? 10)
+  //             : (bounceStartPadding ?? 10),
+  //           duration: duration || this.distance * bounceSpeed,
+  //           easing: easing,
+  //           isInteraction: isInteraction,
+  //           useNativeDriver: useNativeDriver,
+  //           delay: bounceDelay,
+  //         }),
+  //       ]).start(({ finished }) => {
+  //         if (finished) {
+  //           this.hasFinishedFirstLoop = true;
+  //         }
+  //         if (loop) {
+  //           this.animateBounce();
+  //         }
+  //       });
+  //     },
+  //     this.hasFinishedFirstLoop
+  //       ? bounceDelay > 0
+  //         ? bounceDelay
+  //         : 0
+  //       : marqueeDelay,
+  //   );
+  // };
+
   animateBounce = () => {
-    const {
-      duration,
-      marqueeDelay,
-      loop,
-      isInteraction,
-      useNativeDriver,
-      easing,
-      bounceSpeed,
-      bouncePadding,
-      bounceDelay,
-      isRTL,
-    } = this.props;
+    const {duration, marqueeDelay, loop, isInteraction, useNativeDriver, easing, bounceSpeed, bouncePadding, bounceDelay, isRTL} = this.props
     const rtl = isRTL ?? I18nManager.isRTL;
     const bounceEndPadding = rtl ? bouncePadding?.left : bouncePadding?.right;
     const bounceStartPadding = rtl ? bouncePadding?.right : bouncePadding?.left;
-    this.setTimeout(
-      () => {
-        Animated.sequence([
-          Animated.timing(this.animatedValue, {
-            toValue: rtl
-              ? this.distance + (bounceEndPadding ?? 10)
-              : -this.distance - (bounceEndPadding ?? 10),
-            duration: duration || this.distance * bounceSpeed,
-            easing: easing,
-            isInteraction: isInteraction,
-            useNativeDriver: useNativeDriver,
-          }),
-          Animated.timing(this.animatedValue, {
-            toValue: rtl
-              ? -(bounceStartPadding ?? 10)
-              : (bounceStartPadding ?? 10),
-            duration: duration || this.distance * bounceSpeed,
-            easing: easing,
-            isInteraction: isInteraction,
-            useNativeDriver: useNativeDriver,
-            delay: bounceDelay,
-          }),
-        ]).start(({ finished }) => {
-          if (finished) {
-            this.hasFinishedFirstLoop = true;
-          }
-          if (loop) {
-            this.animateBounce();
-          }
-        });
-      },
-      this.hasFinishedFirstLoop
-        ? bounceDelay > 0
-          ? bounceDelay
-          : 0
-        : marqueeDelay,
-    );
-  };
+    const currentDistance = Number.isNaN(this.distance) ?  50  : this.distance;
+    this.setTimeout(() => {
+      Animated.sequence([
+        Animated.timing(this.animatedValue, {
+          toValue:         rtl ? currentDistance + (bounceEndPadding ?? 10) : -currentDistance - (bounceEndPadding ?? 10),
+          duration:        duration || (currentDistance) * bounceSpeed,
+          easing:          easing,
+          isInteraction:   isInteraction,
+          useNativeDriver: useNativeDriver
+        }),
+        Animated.timing(this.animatedValue, {
+          toValue:         rtl ? -(bounceStartPadding ?? 10) : bounceStartPadding ?? 10,
+          duration:        duration || (currentDistance) * bounceSpeed,
+          easing:          easing,
+          isInteraction:   isInteraction,
+          useNativeDriver: useNativeDriver,
+          delay: bounceDelay
+        })
+      ]).start(({finished}) => {
+        if (finished) {
+          this.hasFinishedFirstLoop = true
+        }
+        if (loop) {
+          this.animateBounce()
+        }
+      })
+    }, this.hasFinishedFirstLoop ? bounceDelay > 0 ? bounceDelay : 0 : marqueeDelay)
+  }
 
   start = async () => {
     this.setState({ animating: true });

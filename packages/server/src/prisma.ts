@@ -1,10 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { SpotifyApi, type AccessToken } from '@spotify/web-api-ts-sdk';
-import safeAwait from 'safe-await';
 import { a, arrToString, AUTH_HEADER, DEFAULT_IMG, freshSDK, MyDeserializer, SPOTIFY_CLIENT_ID } from './utils';
-import type { AxiosError } from 'axios';
-import axios from 'axios';
-
+import { drizzle } from 'drizzle-orm/prisma/pg';
+import safeAwait from 'safe-await';
 let prisma = new PrismaClient().$extends({
   query: {
     profile: {
@@ -38,7 +35,11 @@ let prisma = new PrismaClient().$extends({
               console.error("wtf is this edge case")
             }
             //@ts-ignore
-            let sdk = await freshSDK(user)
+            let [err, sdk] = await safeAwait(freshSDK(user))
+
+            if (err) {
+              throw "spotify err"
+            }
 
             let state = await sdk!.player.getPlaybackState()
             //console.log('s', state);
@@ -69,6 +70,6 @@ let prisma = new PrismaClient().$extends({
       }
     }
   }
-})
+}).$extends(drizzle())
 
 export default prisma

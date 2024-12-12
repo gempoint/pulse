@@ -37,30 +37,12 @@
           <string>exp+pulse</string>
         </array>
       </dict>
-      <dict>
-        <key>CFBundleURLName</key>
-        <string>com.gempoint.pulse</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>com.gempoint.pulse</string>
-        </array>
-      </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
-    <key>ExpoSpotifySDK</key>
-    <dict>
-      <key>clientID</key>
-      <string>f61910ffe6754c74825ec6dd21d7bcb0</string>
-      <key>scheme</key>
-      <string>com.gempoint.pulse</string>
-      <key>host</key>
-      <string>auth</string>
-    </dict>
     <key>LSApplicationQueriesSchemes</key>
     <array>
       <string>instagram-stories</string>
-      <string>spotify</string>
     </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
@@ -71,6 +53,8 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your camera</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -81,6 +65,8 @@
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>The app accesses your photos to let you share them with your friends.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>

@@ -118,13 +118,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "0.0.1"
-    
-        manifestPlaceholders = [
-          spotifyClientId: "f61910ffe6754c74825ec6dd21d7bcb0",
-          spotifyRedirectUri: "com.gempoint.pulse://auth",
-          redirectSchemeName: "com.gempoint.pulse",
-          redirectHostName: "auth"
-        ]
     }
     signingConfigs {
         debug {

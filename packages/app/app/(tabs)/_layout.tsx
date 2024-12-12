@@ -1,24 +1,16 @@
 import isAuthed from "@/hooks/isAuthed";
-import { Redirect, Tabs, useNavigationContainerRef } from "expo-router";
+import { Redirect, router, Tabs, useNavigationContainerRef } from "expo-router";
 import { useTheme } from "tamagui";
 import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react-native";
-import { CircleUserRound, Home, Users2 } from "@tamagui/lucide-icons";
+import { ArrowLeft, CircleUserRound, Home, Users2 } from "@tamagui/lucide-icons";
 import SettingsAction from "@/components/SettingsAction";
-
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+import { Pressable } from "react-native";
 
 export default function TabLayout() {
   const authed = isAuthed();
   const theme = useTheme();
   console.log("auth", authed);
-  const ref = useNavigationContainerRef();
-
-  useEffect(() => {
-    if (ref) {
-      routingInstrumentation.registerNavigationContainer(ref);
-    }
-  }, [ref]);
 
   if (!authed) {
     return <Redirect href={"/auth"} />;
@@ -53,6 +45,27 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarIcon: ({ color }) => <Users2 size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="edit"
+        options={{
+          href: null,
+          //headerShown: false,
+          //headerStyle: {
+          //  backgroundColor: "#000",
+          //},
+          //header: () => { },
+          headerLeft: () => (
+            <Pressable
+              onPress={() => router.back()}
+            //className="p-2 ml-2"
+            >
+              <ArrowLeft color="white" size={24} />
+            </Pressable>
+          ),
+          headerTitle: "",
+          headerTransparent: true,
         }}
       />
       <Tabs.Screen

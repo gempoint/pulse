@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 import * as Device from "expo-device";
-import _a from "axios";
+import _a, { AxiosError } from "axios";
 import axios from "axios";
 import { apiEndpoint } from "../constants/idk";
 import * as SecureStore from "expo-secure-store";
@@ -47,6 +47,8 @@ export interface User {
   state?: State;
   createdAt: string;
   isFriend: boolean;
+  pending: boolean
+  friend: boolean
 }
 
 export interface StatInfo {
@@ -82,19 +84,45 @@ const post = <T>(url: string, data: unknown) =>
     }),
   );
 
-const get = <T>(url: string, opts?: SWRConfiguration) =>
-  useSWR(
-    url,
-    async (url) =>
-      a
-        .get<T>(url, {
-          headers: {
-            Authorization: `Bearer ${(await SecureStore.getItemAsync("TOKEN")) as string}`,
-          },
-        })
-        .then((res) => res.data),
-    opts,
-  );
+//const get = <T>(url: string, opts?: SWRConfiguration) =>
+//  useSWR(
+//    url,
+//    async (url) =>
+//      a
+//        .get<T>(url, {
+//          headers: {
+//            Authorization: `Bearer ${(await SecureStore.getItemAsync("TOKEN")) as string}`,
+//          },
+//        })
+//        .then((res) => res.data),
+//    opts,
+//  );
+
+
+const get = <T>(url: string | null, opts?: SWRConfiguration) => useSWR(url, async (url) => {
+  a.get<T>(url, {
+    headers: {
+      Authorization: `Bearer ${(await SecureStore.getItemAsync("TOKEN")) as string}`,
+    },
+  }).catch((err_: Error | AxiosError) => {
+    let err = new Error("failed to fetch")
+    if (axios.isAxiosError(err_)) {
+      // @ts-ignore
+      err.name = err_.cause?.name
+      // @ts-ignore
+      err.info = err_.toJSON()
+      // @ts-ignore
+      err.status = err_.status
+      // Access to config, request, and response
+    } else {
+      // Just a stock error
+      // @ts-ignore
+      err.info = err_
+    }
+    throw err
+  }).then((res) => res.data)
+
+})
 
 export const verifyToken = async (x: string) => {
   let y = await a.get<APIResponse<boolean, unknown>>("/valid", {
@@ -195,14 +223,15 @@ export const checkUsernameValid = async (name: string) => {
   return y.data.ok;
 };
 
-export const fetchFriends = async () => {
-  let token = (await SecureStore.getItemAsync("TOKEN")) as string;
-  let y = await a.get<APIResponse<true, User[]>>("/user/friends", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return y.data;
+export const fetchFriends = (...args: [SWRConfiguration | undefined]) => {
+  // let token = (await SecureStore.getItemAsync("TOKEN")) as string;
+  // let y = await a.get<APIResponse<true, User[]>>("/user/friends", {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // });
+  // return y.data;
+  return get<APIResponse<true, User[]>>(`/user/friends`, args[0]);
 };
 
 export const fetchNotifs = async () => {
@@ -220,11 +249,11 @@ export const acceptFriReq = async (id: string) => {
   let y = await a.get<
     | APIResponse<true, undefined>
     | APIResponse<
-        false,
-        {
-          type: string;
-        }
-      >
+      false,
+      {
+        type: string;
+      }
+    >
   >(`/user/notifications/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -238,11 +267,11 @@ export const declineFriReq = async (id: string) => {
   let y = await a.delete<
     | APIResponse<true, undefined>
     | APIResponse<
-        false,
-        {
-          type: string;
-        }
-      >
+      false,
+      {
+        type: string;
+      }
+    >
   >(`/ user / notifications / ${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -257,11 +286,11 @@ export const sendFriReq = async (id: string) => {
   let y = await a.post<
     | APIResponse<true, undefined>
     | APIResponse<
-        false,
-        {
-          type: string;
-        }
-      >
+      false,
+      {
+        type: string;
+      }
+    >
   >(
     `/user/add/${id}`,
     {},
@@ -293,14 +322,15 @@ export const fetchUserPN = async () => {
   return y.data;
 };
 
-export const searchUsers = async (x: string) => {
-  let token = (await SecureStore.getItemAsync("TOKEN")) as string;
-  let y = await a.get<APIResponse<true, User[]>>(`/user/search/${x}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return y.data;
+export const searchUsers = (...args: [string, SWRConfiguration]) => {
+  //let token = (await SecureStore.getItemAsync("TOKEN")) as string;
+  //let y = await a.get<APIResponse<true, User[]>>(`/user/search/${x}`, {
+  //  headers: {
+  //    Authorization: `Bearer ${token}`,
+  //  },
+  //});
+  //return y.data;
+  return get<APIResponse<true, User[]>>(`/user/search/${args[0]}`, args[1])
 };
 
 export const fetchUserFriends = async (x: string) => {
@@ -323,20 +353,20 @@ export const fetchUserStats = (...args: [string, SWRConfiguration]) => {
   //return y.data
   return get<
     | APIResponse<
-        true,
-        {
-          artists: StatInfo[] | [];
-          songs: StatInfo[] | [];
-        }
-      >
+      true,
+      {
+        artists: StatInfo[] | [];
+        songs: StatInfo[] | [];
+      }
+    >
     | APIResponse<
-        false,
-        {
-          type: string;
-        }
-      >
+      false,
+      {
+        type: string;
+      }
+    >
   >(
-    args[0].length === 0 ? `/user/me/stats` : `/user/get/${args[0]}/stats`,
+    args[0] ? args[0].length === 0 ? `/user/me/stats` : `/user/get/${args[0]}/stats` : null,
     args[1],
   );
 };

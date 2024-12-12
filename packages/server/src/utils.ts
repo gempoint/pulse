@@ -230,30 +230,6 @@ export const getLocalIP = () => {
   }
 };
 
-//export const auth = (optional: boolean) => bearerAuth({
-//  verifyToken: async (token, c) => {
-//    const [err, dat] = await safeAwait(verify(token, SECRET as unknown as string))
-//    if (err) {
-//      //return false
-//      return ba(c, 'bad token')
-
-//    }
-//    if (dat) {
-//      return true
-//    }
-//  },
-//  noAuthenticationHeaderMessage: async (c) => {
-//    if (optional) {
-//      return
-//    } else {
-//      return ba(c, "no auth header provided")
-//    }
-//  }
-//})
-
-//export const auth = (idk: unknown) => console.log(idk)
-
-
 export const auth = (optional: boolean = false) => createMiddleware<{
   Variables: {
     id: string

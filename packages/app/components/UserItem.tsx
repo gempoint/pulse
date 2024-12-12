@@ -1,16 +1,17 @@
 import { sendFriReq, User } from "@/etc/api";
 import { router } from "expo-router";
-import { memo, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Linking, StyleSheet } from "react-native";
 import { Button, Image, Text, useTheme, XStack, YStack } from "tamagui";
 import ScrollingText from '@/components/ScrollingText';
 import { Music2 } from "@tamagui/lucide-icons";
+import { getColorFromImage } from "./etc";
 
 const UserItem = memo(({ friend, unadded, noState }: { friend: User, unadded: boolean, noState?: boolean }) => {
   noState = noState || false
   const theme = useTheme();
   const [isAdding, setIsAdding] = useState(false);
-  const [isAdded, setIsAdded] = useState(false);
+  const [isAdded, setIsAdded] = useState(friend.pending);
 
   const handleAddFriend = async () => {
     setIsAdding(true);
@@ -25,6 +26,25 @@ const UserItem = memo(({ friend, unadded, noState }: { friend: User, unadded: bo
       setIsAdding(false);
     }
   };
+
+
+  const [clr, setClr] = useState("");
+
+  // Use useCallback to memoize color extraction
+  const extractImageColor = useCallback(async () => {
+    if (friend.state?.img) {
+      try {
+        const color = await getColorFromImage(friend.state.img);
+        setClr(color);
+      } catch (error) {
+        console.error("Color extraction error:", error);
+      }
+    }
+  }, [friend.state?.img]);
+
+  useEffect(() => {
+    extractImageColor();
+  }, [extractImageColor]);
 
   return (
     <XStack
@@ -51,7 +71,7 @@ const UserItem = memo(({ friend, unadded, noState }: { friend: User, unadded: bo
 
       {(friend.state && !noState) && (
         <XStack
-          backgroundColor={friend.state.color}
+          backgroundColor={clr || friend.color}
           opacity={0.7}
           borderRadius="$4"
           paddingHorizontal="$3"

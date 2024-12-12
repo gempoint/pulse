@@ -3,7 +3,7 @@ import { Button, Text, YStack, styled } from 'tamagui'
 import Icon from '../assets/images/icon.svg'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as WebBrowser from 'expo-web-browser';
-import { apiEndpoint } from '../constants/idk';
+import { apiEndpoint, SPOTIFY_GREEN } from '../constants/idk';
 import { useToastController } from '@tamagui/toast';
 import { ping } from '@/etc/api';
 
@@ -88,7 +88,7 @@ export default function SpotifyLoginScreen() {
         size="$6"
         //theme="green"
         icon={<FontAwesome5 name="spotify" size={24} color={'white'} />}
-        backgroundColor={"#1DB954"}
+        backgroundColor={SPOTIFY_GREEN}
         onPress={handleSpotifyLogin}
       >
         Login with Spotify

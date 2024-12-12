@@ -7,11 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "pulse",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1f1f1f"
-    },
     "extra": {
       "DSN": "https://04ce65a60dd9b50514b823edaa61c830@o4504234803068928.ingest.us.sentry.io/4507992564498432",
       "eas": {
@@ -52,7 +47,9 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [
@@ -61,6 +58,20 @@
           "organization": "gempoint",
           "project": "pulse",
           "url": "https://sentry.io/"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1f1f1f",
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200
         }
       ]
     ],
